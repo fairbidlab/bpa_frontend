@@ -1,23 +1,361 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useWriteContract, useReadContract, useReadContracts } from 'wagmi';
+import { parseEther } from 'viem';
+import BPAMarketABI from './contracts/BPAMarket.json';
+import { CONTRACT_ADDRESSES } from './contracts/config';
 import './App.css';
+import EventCalendarABI from './contracts/EventCalendar.json';
+import AgentPoIABI from './contracts/AgentPoI.json';
+
+const CALENDAR_ADDRESS = '0xb2b72569505E54bA335e18A3e3d4b1cdCc129c9C';
+const MIN_STAKE = '0.001';
+const MARKET_ADDRESS = CONTRACT_ADDRESSES.BPAMarket;
+const RPC_URL = 'https://eth-sepolia.g.alchemy.com/v2/dGJhIAT-IAiPWg8s23bd1';
 
 function App() {
+  const [markets, setMarkets] = useState([]);
+  const [selectedMarket, setSelectedMarket] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [tab, setTab] = useState('order');
+  const [side, setSide] = useState('buy');
+  const [outcome, setOutcome] = useState(0);
+  const [quantity, setQuantity] = useState('1');
+  const [limitPrice, setLimitPrice] = useState('0.5');
+  const [organizerMode, setOrganizerMode] = useState(false);
+  const [agentCategory, setAgentCategory] = useState('sport');
+  const [minDistortion, setMinDistortion] = useState('10');
+  const [crossingOnly, setCrossingOnly] = useState(false);
+  const [distortionDirection, setDistortionDirection] = useState('undervalued');
+  const [maxRisk, setMaxRisk] = useState('5');
+  const [maxPositions, setMaxPositions] = useState('3');
+  const [stopLoss, setStopLoss] = useState('20');
+  const [agentActive, setAgentActive] = useState(false);
+  const [agentLog, setAgentLog] = useState([]);
+  const { writeContract } = useWriteContract();
+
+  // Agent PoI from blockchain
+  const AGENT_POI_ADDRESS = CONTRACT_ADDRESSES.AgentPoI;
+  const ORACLE_ADDRESS = '0x7EbBA4d53Bd30Cb834585227Ced6e53e189dBa90';
+  const { data: agentPoIData } = useReadContract({
+    address: AGENT_POI_ADDRESS,
+    abi: AgentPoIABI.abi,
+    functionName: 'getAgentPoI',
+    args: [ORACLE_ADDRESS],
+    chainId: 11155111,
+  });
+
+  // DAO Calendar state
+  const [daoTab, setDaoTab] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
+  const [newEventName, setNewEventName] = useState('');
+  const [newEventOutcomes, setNewEventOutcomes] = useState('Home,Draw,Away');
+  const [newEventDate, setNewEventDate] = useState('');
+  const [calendarLoading, setCalendarLoading] = useState(false);
+
+  const { data: marketCount } = useReadContract({
+    address: MARKET_ADDRESS,
+    abi: BPAMarketABI.abi,
+    functionName: 'marketCount',
+    chainId: 11155111,
+  });
+
+  const marketIds = marketCount
+    ? Array.from({ length: Number(marketCount) }, (_, i) => i + 1).filter(i => i % 2 === 1)
+    : [1, 3];
+
+  const { data: marketsData } = useReadContracts({
+    contracts: marketIds.map(id => ({
+      address: MARKET_ADDRESS,
+      abi: BPAMarketABI.abi,
+      functionName: 'markets',
+      args: [id],
+      chainId: 11155111,
+    })),
+  });
+  useEffect(() => {
+    setMarkets([
+      {id:1, name:'England vs Ghana', outcomes:['England','Draw','Ghana'], status:0},
+      {id:3, name:'Germany vs Spain - Euro 2026', outcomes:['Germany','Draw','Spain'], status:0},
+    ]);
+    setSelectedMarket({id:1, name:'England vs Ghana', outcomes:['England','Draw','Ghana'], status:0});
+  }, []);
+
+  function parseMarket(r) {
+    if (!r) return null;
+    // wagmi v2 returns array-like tuple
+    return {
+      name: r.name || r[0] || 'Unknown',
+      outcomes: Array.isArray(r[1] || r.outcomes) ? (r[1] || r.outcomes) : [],
+      status: Number(r[2] ?? r.status ?? 0),
+      currentBatch: Number(r[3] ?? r.currentBatch ?? 0),
+      totalVolume: Number(r[4] ?? r.totalVolume ?? 0),
+    };
+  }
+
+  async function fetchMarketPrices(marketId) {
+    try {
+      const provider = new (await import('ethers')).ethers.JsonRpcProvider(RPC_URL);
+      const contract = new (await import('ethers')).ethers.Contract(MARKET_ADDRESS, BPAMarketABI.abi, provider);
+      const batch = await contract.getCurrentBatch(marketId);
+      return batch;
+    } catch { return null; }
+  }
+
+  function handleOrder(e) {
+    e.preventDefault();
+    if (!selectedMarket) return;
+    const price = parseFloat(limitPrice);
+    const qty = parseInt(quantity);
+    const funds = parseEther((price * qty * 1.01).toFixed(6));
+    writeContract({
+      address: MARKET_ADDRESS,
+      abi: BPAMarketABI.abi,
+      functionName: 'submitOrder',
+      args: [selectedMarket.id, side === 'buy' ? 0 : 1, outcome, qty, Math.round(price * 1e18)],
+      value: funds,
+    });
+  }
+
+  function handlePoI() {
+    if (!selectedMarket) return;
+    const poiMarketId = selectedMarket.id + 1;
+    writeContract({
+      address: MARKET_ADDRESS,
+      abi: BPAMarketABI.abi,
+      functionName: 'submitOrder',
+      args: [poiMarketId, 0, outcome, 1, Math.round(parseFloat(limitPrice) * 1e18)],
+      value: parseEther('0.001'),
+    });
+  }
+
+  function toggleAgent() {
+    setAgentActive(a => {
+      if (!a) setAgentLog(l => [...l, `[${new Date().toLocaleTimeString()}] Agent started.`]);
+      else setAgentLog(l => [...l, `[${new Date().toLocaleTimeString()}] Agent stopped.`]);
+      return !a;
+    });
+  }
+
+  async function loadCalendarEvents() {
+    setCalendarLoading(true);
+    try {
+      const provider = new (await import('ethers')).ethers.JsonRpcProvider(RPC_URL);
+      const contract = new (await import('ethers')).ethers.Contract(CALENDAR_ADDRESS, EventCalendarABI.abi, provider);
+      const events = await contract.getApprovedEvents();
+      setCalendarEvents(events);
+    } catch (e) { console.error(e); }
+    setCalendarLoading(false);
+  }
+
+  function proposeEvent() {
+    if (!newEventName || !newEventDate) return;
+    const outcomes = newEventOutcomes.split(',').map(s => s.trim());
+    const dateUnix = Math.floor(new Date(newEventDate).getTime() / 1000);
+    writeContract({
+      address: CALENDAR_ADDRESS,
+      abi: EventCalendarABI.abi,
+      functionName: 'proposeEvent',
+      args: [newEventName, outcomes, dateUnix, 'sport'],
+      value: parseEther(MIN_STAKE),
+    });
+  }
+
+  function voteEvent(eventId, approve) {
+    writeContract({
+      address: CALENDAR_ADDRESS,
+      abi: EventCalendarABI.abi,
+      functionName: 'vote',
+      args: [eventId, approve],
+      value: parseEther(MIN_STAKE),
+    });
+  }
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+    <div className="app-root">
+      <header className="app-header">
+        <div className="logo">BPA Market — Web4 Prediction Market</div>
+        <div className="header-right">
+          <button className={!daoTab ? 'nav-btn active' : 'nav-btn'} onClick={() => setDaoTab(false)}>Markets</button>
+          <button className={daoTab ? 'nav-btn active' : 'nav-btn'} onClick={() => { setDaoTab(true); loadCalendarEvents(); }}>DAO Calendar</button>
+          <ConnectButton />
+        </div>
       </header>
+
+      {!daoTab ? (
+        <div className="main-layout">
+          <div className="market-list">
+            <div className="market-list-header">
+              <span>Markets</span>
+              <button className="refresh-btn" onClick={() => {}}>Refresh</button>
+            </div>
+            {markets.map(m => (
+              <div key={m.id} className={selectedMarket?.id === m.id ? 'market-item selected' : 'market-item'} onClick={() => setSelectedMarket(m)}>
+                <div className="market-name">{m.name}</div>
+                <div className="market-status">Open</div>
+              </div>
+            ))}
+          </div>
+
+          {selectedMarket && (
+            <div className="market-detail">
+              <h2>{selectedMarket.name}</h2>
+              <div className="tabs">
+                <button className={tab === 'order' ? 'tab active' : 'tab'} onClick={() => setTab('order')}>Manual Order</button>
+                <button className={tab === 'agent' ? 'tab active' : 'tab'} onClick={() => setTab('agent')}>AI Agent</button>
+              </div>
+
+              {tab === 'order' && (
+                <div className="order-form">
+                  <form onSubmit={handleOrder}>
+                    <div className="form-group">
+                      <label>Side</label>
+                      <div className="side-buttons">
+                        <button type="button" className={side === 'buy' ? 'side-btn buy active' : 'side-btn buy'} onClick={() => setSide('buy')}>Buy</button>
+                        <button type="button" className={side === 'sell' ? 'side-btn sell active' : 'side-btn sell'} onClick={() => setSide('sell')}>Sell</button>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Outcome</label>
+                      <div className="outcome-buttons">
+                        {selectedMarket.outcomes.map((o, i) => (
+                          <button type="button" key={i} className={outcome === i ? 'outcome-btn active' : 'outcome-btn'} onClick={() => setOutcome(i)}>{o}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Quantity</label>
+                      <input type="number" value={quantity} onChange={e => setQuantity(e.target.value)} min="1" required />
+                    </div>
+                    <div className="form-group">
+                      <label>Limit Price (0-1)</label>
+                      <input type="number" value={limitPrice} onChange={e => setLimitPrice(e.target.value)} min="0.01" max="0.99" step="0.01" required />
+                    </div>
+                    <div className="form-group toggle-group">
+                      <label>Organizer Mode</label>
+                      <button type="button" className={organizerMode ? 'toggle on' : 'toggle off'} onClick={() => setOrganizerMode(!organizerMode)}>{organizerMode ? 'ON' : 'OFF'}</button>
+                    </div>
+                    <button type="submit" className="submit-btn">Submit Order</button>
+                  </form>
+                  <button className="redemption-btn" onClick={() => alert('Redemption coming soon')}>Redemption (Sell Position)</button>
+                  <div className="poi-section">
+                    <button className="poi-btn" onClick={handlePoI}>+ Add PoI Prediction</button>
+                    <small>Auto market order × 1 in PoI market</small>
+                  </div>
+                </div>
+              )}
+
+              {tab === 'agent' && (
+                <div className="agent-form">
+                  <div className="agent-block">
+                    <h3>1. Category & Model</h3>
+                    <div className="category-buttons">
+                      {['sport', 'politics', 'weather', 'rare', 'finance'].map(cat => (
+                        <button key={cat} className={agentCategory === cat ? 'cat-btn active' : 'cat-btn'} onClick={() => setAgentCategory(cat)}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="agent-block">
+                    <h3>2. Distortion Settings</h3>
+                    <div className="form-group">
+                      <label>Coefficient Format</label>
+                      <div className="format-buttons">
+                        {['decimal', 'american', 'fractional'].map(f => (
+                          <button key={f} className="fmt-btn">{f.charAt(0).toUpperCase() + f.slice(1)}</button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Direction</label>
+                      <div className="side-buttons">
+                        <button className={distortionDirection === 'overvalued' ? 'side-btn active' : 'side-btn'} onClick={() => setDistortionDirection('overvalued')}>Market Overvalues</button>
+                        <button className={distortionDirection === 'undervalued' ? 'side-btn active' : 'side-btn'} onClick={() => setDistortionDirection('undervalued')}>Market Undervalues</button>
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <label>Min Distortion Threshold: {minDistortion}%</label>
+                      <input type="range" min="1" max="50" value={minDistortion} onChange={e => setMinDistortion(e.target.value)} />
+                    <div className="form-group"><label><input type="checkbox" checked={crossingOnly} onChange={e => setCrossingOnly(e.target.checked)} style={{marginRight:"8px"}}/> Only if predicted winner changes (crossing 50%)</label></div>
+                    </div>
+                  </div>
+                  <div className="agent-block">
+                    <h3>3. Risk Management</h3>
+                    <div className="form-group">
+                      <label>Max Risk per Bet: {maxRisk}% of capital</label>
+                      <input type="range" min="1" max="20" value={maxRisk} onChange={e => setMaxRisk(e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label>Max Open Positions: {maxPositions}</label>
+                      <input type="range" min="1" max="10" value={maxPositions} onChange={e => setMaxPositions(e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label>Stop Loss: {stopLoss}%</label>
+                      <input type="range" min="5" max="50" value={stopLoss} onChange={e => setStopLoss(e.target.value)} />
+                    </div>
+                  </div>
+                  <div className="agent-block">
+                    <h3>4. Agent Management</h3>
+                    <div className="agent-poi-display" style={{background:'#1a1d2e',borderRadius:'8px',padding:'12px',marginBottom:'12px',border:'1px solid #c9a84c'}}>
+                      <div style={{color:'#c9a84c',fontWeight:'600',marginBottom:'4px'}}>🤖 Agent PoI Score</div>
+                      <div style={{color:'#e2e8f0',fontSize:'1.2rem'}}>
+                        {agentPoIData ? (Number(agentPoIData[0]) / 1e18).toFixed(4) : '—'}
+                      </div>
+                      <div style={{color:'#8892a4',fontSize:'0.8rem'}}>
+                        Predictions: {agentPoIData ? Number(agentPoIData[1]).toString() : '0'}
+                      </div>
+                    </div>
+                    <div className="agent-status">
+                      <span className={agentActive ? 'status-dot active' : 'status-dot'} />
+                      <span>{agentActive ? 'Active' : 'Inactive'}</span>
+                      <button className={agentActive ? 'agent-btn stop' : 'agent-btn start'} onClick={toggleAgent}>
+                        {agentActive ? '■ Stop Agent' : '▶ Start Agent'}
+                      </button>
+                    </div>
+                    <div className="agent-log">
+                      {agentLog.length === 0 ? <p>No activity yet</p> : agentLog.map((log, i) => <p key={i}>{log}</p>)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="dao-panel">
+          <div className="dao-propose">
+            <h2>Propose New Event</h2>
+            <div className="form-group">
+              <label>Event Name</label>
+              <input type="text" value={newEventName} onChange={e => setNewEventName(e.target.value)} placeholder="e.g. England vs Ghana - World Cup" />
+            </div>
+            <div className="form-group">
+              <label>Outcomes (comma separated)</label>
+              <input type="text" value={newEventOutcomes} onChange={e => setNewEventOutcomes(e.target.value)} placeholder="Home,Draw,Away" />
+            </div>
+            <div className="form-group">
+              <label>Event Date</label>
+              <input type="date" value={newEventDate} onChange={e => setNewEventDate(e.target.value)} />
+            </div>
+            <button className="submit-btn" onClick={proposeEvent}>Propose Event</button>
+          </div>
+          <div className="dao-events">
+            <h2>Approved Events</h2>
+            <button className="refresh-btn" onClick={loadCalendarEvents}>Refresh</button>
+            {calendarLoading ? <p>Loading...</p> : calendarEvents.map((ev, i) => (
+              <div key={i} className="event-card">
+                <div className="event-name">{ev.name}</div>
+                <div className="event-outcomes">{ev.outcomes?.join(', ')}</div>
+                <div className="event-actions">
+                  <button className="vote-btn yes" onClick={() => voteEvent(ev.id, true)}>✓ Approve</button>
+                  <button className="vote-btn no" onClick={() => voteEvent(ev.id, false)}>✗ Reject</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
