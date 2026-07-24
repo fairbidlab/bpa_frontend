@@ -44,6 +44,11 @@ function App() {
     args: [ORACLE_ADDRESS],
     chainId: 11155111,
   });
+  const { data: footballPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'football'], chainId: 11155111 });
+  const { data: financePoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'finance'], chainId: 11155111 });
+  const { data: politicsPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'politics'], chainId: 11155111 });
+  const { data: weatherPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'weather'], chainId: 11155111 });
+  const { data: rarePoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'rare'], chainId: 11155111 });
 
   // DAO Calendar state
   const [daoTab, setDaoTab] = useState(false);
@@ -298,12 +303,19 @@ function App() {
                   <div className="agent-block">
                     <h3>4. Agent Management</h3>
                     <div className="agent-poi-display" style={{background:'#1a1d2e',borderRadius:'8px',padding:'12px',marginBottom:'12px',border:'1px solid #c9a84c'}}>
-                      <div style={{color:'#c9a84c',fontWeight:'600',marginBottom:'4px'}}>🤖 Agent PoI Score</div>
-                      <div style={{color:'#e2e8f0',fontSize:'1.2rem'}}>
-                        {agentPoIData ? (Number(agentPoIData[0]) / 1e18).toFixed(4) : '—'}
+                      <div style={{color:'#c9a84c',fontWeight:'600',marginBottom:'8px'}}>🤖 Agent PoI Score</div>
+                      <div style={{color:'#e2e8f0',fontSize:'1.2rem',marginBottom:'8px'}}>
+                        Total: {agentPoIData ? (Number(agentPoIData[0]) / 1e18).toFixed(4) : '—'}
                       </div>
-                      <div style={{color:'#8892a4',fontSize:'0.8rem'}}>
-                        Predictions: {agentPoIData ? Number(agentPoIData[1]).toString() : '0'}
+                      <div style={{fontSize:'0.8rem',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px'}}>
+                        <span style={{color:'#8892a4'}}>⚽ Sport:</span><span style={{color: footballPoI && Number(footballPoI[0]) >= 0 ? '#22c55e' : '#f87171'}}>{footballPoI ? (Number(footballPoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                        <span style={{color:'#8892a4'}}>💰 Finance:</span><span style={{color: financePoI && Number(financePoI[0]) >= 0 ? '#22c55e' : '#f87171'}}>{financePoI ? (Number(financePoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                        <span style={{color:'#8892a4'}}>🗳️ Politics:</span><span style={{color: politicsPoI && Number(politicsPoI[0]) >= 0 ? '#22c55e' : '#f87171'}}>{politicsPoI ? (Number(politicsPoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                        <span style={{color:'#8892a4'}}>🌤️ Weather:</span><span style={{color: weatherPoI && Number(weatherPoI[0]) >= 0 ? '#22c55e' : '#f87171'}}>{weatherPoI ? (Number(weatherPoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                        <span style={{color:'#8892a4'}}>⚡ Rare:</span><span style={{color: rarePoI && Number(rarePoI[0]) >= 0 ? '#22c55e' : '#f87171'}}>{rarePoI ? (Number(rarePoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                      </div>
+                      <div style={{color:'#8892a4',fontSize:'0.75rem',marginTop:'6px'}}>
+                        Total predictions: {agentPoIData ? Number(agentPoIData[1]).toString() : '0'}
                       </div>
                     </div>
                     <div className="agent-status">
