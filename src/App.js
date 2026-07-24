@@ -317,6 +317,19 @@ function App() {
                       <div style={{color:'#8892a4',fontSize:'0.75rem',marginTop:'6px'}}>
                         Total predictions: {agentPoIData ? Number(agentPoIData[1]).toString() : '0'}
                       </div>
+                      <div style={{marginTop:'8px',fontSize:'0.85rem'}}>
+                        {(() => {
+                          const count = agentPoIData ? Number(agentPoIData[1]) : 0;
+                          const total = agentPoIData ? Number(agentPoIData[0]) / 1e18 : 0;
+                          const avg = count > 0 ? total / count : 0;
+                          if (count >= 200 && avg > 0.40) return <span style={{color:'#a855f7'}}>🔮 Oracle</span>;
+                          if (count >= 100 && avg > 0.25) return <span style={{color:'#06b6d4'}}>💎 Platinum</span>;
+                          if (count >= 50 && avg > 0.15) return <span style={{color:'#c9a84c'}}>🥇 Gold</span>;
+                          if (count >= 20 && avg > 0.05) return <span style={{color:'#9ca3af'}}>🥈 Silver</span>;
+                          if (count >= 10 && avg > 0.00) return <span style={{color:'#92400e'}}>🥉 Bronze</span>;
+                          return <span style={{color:'#8892a4'}}>— Unranked</span>;
+                        })()}
+                      </div>
                     </div>
                     <div className="agent-status">
                       <span className={agentActive ? 'status-dot active' : 'status-dot'} />
