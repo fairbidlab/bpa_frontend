@@ -237,9 +237,12 @@ function App() {
                       <input type="number" value={limitPrice} onChange={e => setLimitPrice(e.target.value)} min="0.01" max="0.99" step="0.01" required />
                     </div>
                     <div className="form-group toggle-group">
-                      <label>Organizer Mode</label>
-                      <button type="button" className={organizerMode ? 'toggle on' : 'toggle off'} onClick={() => setOrganizerMode(!organizerMode)}>{organizerMode ? 'ON' : 'OFF'}</button>
+                      <label>Order Type</label>
+                      <button type="button" className={limitPrice === '0.999' ? 'toggle on' : 'toggle off'} onClick={() => setLimitPrice(limitPrice === '0.999' ? '0.5' : '0.999')}>
+                        {limitPrice === '0.999' ? 'Market Order' : 'Limit Order'}
+                      </button>
                     </div>
+
                     <button type="submit" className="submit-btn">Submit Order</button>
                   </form>
                   <button className="redemption-btn" onClick={() => alert('Redemption coming soon')}>Redemption (Sell Position)</button>
