@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { useWriteContract, useReadContract, useReadContracts } from 'wagmi';
+import { useWriteContract, useReadContract, useReadContracts, useAccount } from 'wagmi';
 import { parseEther } from 'viem';
 import BPAMarketABI from './contracts/BPAMarket.json';
 import { CONTRACT_ADDRESSES } from './contracts/config';
@@ -33,6 +33,7 @@ function App() {
   const [agentActive, setAgentActive] = useState(false);
   const [agentLog, setAgentLog] = useState([]);
   const { writeContract } = useWriteContract();
+  const { address } = useAccount();
 
   // Agent PoI from blockchain
   const AGENT_POI_ADDRESS = CONTRACT_ADDRESSES.AgentPoI;
@@ -45,6 +46,12 @@ function App() {
     chainId: 11155111,
   });
   const { data: footballPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'football'], chainId: 11155111 });
+  const { data: userPoIData } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getAgentPoI', args: [address || ORACLE_ADDRESS], chainId: 11155111 });
+  const { data: userFootballPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [address || ORACLE_ADDRESS, 'football'], chainId: 11155111 });
+  const { data: userFinancePoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [address || ORACLE_ADDRESS, 'finance'], chainId: 11155111 });
+  const { data: userPoliticsPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [address || ORACLE_ADDRESS, 'politics'], chainId: 11155111 });
+  const { data: userWeatherPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [address || ORACLE_ADDRESS, 'weather'], chainId: 11155111 });
+  const { data: userRarePoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [address || ORACLE_ADDRESS, 'rare'], chainId: 11155111 });
   const { data: financePoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'finance'], chainId: 11155111 });
   const { data: politicsPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'politics'], chainId: 11155111 });
   const { data: weatherPoI } = useReadContract({ address: AGENT_POI_ADDRESS, abi: AgentPoIABI.abi, functionName: 'getCategoryPoI', args: [ORACLE_ADDRESS, 'weather'], chainId: 11155111 });
@@ -52,6 +59,7 @@ function App() {
 
   // DAO Calendar state
   const [daoTab, setDaoTab] = useState(false);
+  const [profileTab, setProfileTab] = useState(false);
   const [calendarEvents, setCalendarEvents] = useState([]);
   const [newEventName, setNewEventName] = useState('');
   const [newEventOutcomes, setNewEventOutcomes] = useState('Home,Draw,Away');
@@ -182,12 +190,13 @@ function App() {
         <div className="logo">BPA Market — Web4 Prediction Market</div>
         <div className="header-right">
           <button className={!daoTab ? 'nav-btn active' : 'nav-btn'} onClick={() => setDaoTab(false)}>Markets</button>
-          <button className={daoTab ? 'nav-btn active' : 'nav-btn'} onClick={() => { setDaoTab(true); loadCalendarEvents(); }}>DAO Calendar</button>
+          <button className={daoTab ? 'nav-btn active' : 'nav-btn'} onClick={() => { setDaoTab(true); setProfileTab(false); loadCalendarEvents(); }}>DAO Calendar</button>
+          <button className={profileTab ? 'nav-btn active' : 'nav-btn'} onClick={() => { setProfileTab(true); setDaoTab(false); }}>My Profile</button>
           <ConnectButton />
         </div>
       </header>
 
-      {!daoTab ? (
+      {!daoTab && !profileTab ? (
         <div className="main-layout">
           <div className="market-list">
             <div className="market-list-header">
@@ -347,6 +356,48 @@ function App() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+      ) : profileTab ? (
+        <div className="profile-panel">
+          <h2 style={{color:'#c9a84c',marginBottom:'20px'}}>👤 My Profile</h2>
+          {address ? (
+            <div>
+              <div style={{background:'#1a1d2e',borderRadius:'8px',padding:'16px',marginBottom:'16px',border:'1px solid #2e3347'}}>
+                <div style={{color:'#8892a4',fontSize:'0.85rem',marginBottom:'4px'}}>Wallet Address</div>
+                <div style={{color:'#e2e8f0',fontFamily:'monospace'}}>{address}</div>
+              </div>
+              <div style={{background:'#1a1d2e',borderRadius:'8px',padding:'16px',marginBottom:'16px',border:'1px solid #c9a84c'}}>
+                <div style={{color:'#c9a84c',fontWeight:'600',marginBottom:'12px'}}>🏆 My PoI Score</div>
+                <div style={{fontSize:'1.5rem',color:'#e2e8f0',marginBottom:'8px'}}>
+                  {agentPoIData ? (Number(agentPoIData[0]) / 1e18).toFixed(4) : '0.0000'}
+                </div>
+                <div style={{fontSize:'0.8rem',display:'grid',gridTemplateColumns:'1fr 1fr',gap:'4px'}}>
+                  <span style={{color:'#8892a4'}}>⚽ Sport:</span><span style={{color:'#22c55e'}}>{footballPoI ? (Number(footballPoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                  <span style={{color:'#8892a4'}}>💰 Finance:</span><span style={{color:'#22c55e'}}>{financePoI ? (Number(financePoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                  <span style={{color:'#8892a4'}}>🗳️ Politics:</span><span style={{color:'#22c55e'}}>{politicsPoI ? (Number(politicsPoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                  <span style={{color:'#8892a4'}}>🌤️ Weather:</span><span style={{color:'#22c55e'}}>{weatherPoI ? (Number(weatherPoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                  <span style={{color:'#8892a4'}}>⚡ Rare:</span><span style={{color:'#22c55e'}}>{rarePoI ? (Number(rarePoI[0]) / 1e18).toFixed(4) : '0'}</span>
+                </div>
+                <div style={{marginTop:'12px'}}>
+                  {(() => {
+                    const count = agentPoIData ? Number(agentPoIData[1]) : 0;
+                    const total = agentPoIData ? Number(agentPoIData[0]) / 1e18 : 0;
+                    const avg = count > 0 ? total / count : 0;
+                    if (count >= 200 && avg > 0.40) return <span style={{color:'#a855f7',fontSize:'1.1rem'}}>🔮 Oracle Level</span>;
+                    if (count >= 100 && avg > 0.25) return <span style={{color:'#06b6d4',fontSize:'1.1rem'}}>💎 Platinum Level</span>;
+                    if (count >= 50 && avg > 0.15) return <span style={{color:'#c9a84c',fontSize:'1.1rem'}}>🥇 Gold Level</span>;
+                    if (count >= 20 && avg > 0.05) return <span style={{color:'#9ca3af',fontSize:'1.1rem'}}>🥈 Silver Level</span>;
+                    if (count >= 10 && avg > 0.00) return <span style={{color:'#92400e',fontSize:'1.1rem'}}>🥉 Bronze Level</span>;
+                    return <span style={{color:'#8892a4',fontSize:'1.1rem'}}>— Unranked</span>;
+                  })()}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{color:'#8892a4',textAlign:'center',padding:'40px'}}>
+              Please connect your wallet to view your profile.
             </div>
           )}
         </div>
