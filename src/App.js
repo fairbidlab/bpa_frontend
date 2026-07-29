@@ -24,6 +24,7 @@ function App() {
   const [limitPrice, setLimitPrice] = useState('0.5');
   const [organizerMode, setOrganizerMode] = useState(false);
   const [agentCategory, setAgentCategory] = useState('sport');
+  const [pariAmounts, setPariAmounts] = useState({});
   const [minDistortion, setMinDistortion] = useState('10');
   const [crossingOnly, setCrossingOnly] = useState(false);
   const [distortionDirection, setDistortionDirection] = useState('undervalued');
@@ -120,12 +121,13 @@ function App() {
     if (!selectedMarket) return;
     const price = parseFloat(limitPrice);
     const qty = parseInt(quantity);
-    const funds = parseEther((price * qty * 1.01).toFixed(6));
+    const funds = parseEther('0.002');  // oracle fee only
+    alert('outcome: ' + selectedMarket.outcomes[outcome] + ' qty:' + qty + ' price:' + Math.round(price * 1e18));
     writeContract({
       address: MARKET_ADDRESS,
       abi: BPAMarketABI.abi,
       functionName: 'submitOrder',
-      args: [selectedMarket.id, side === 'buy' ? 0 : 1, outcome, qty, Math.round(price * 1e18)],
+      args: [selectedMarket.id, selectedMarket.outcomes[outcome], qty, Math.round(price * 1e18), side === 'buy' ? 0 : 1],
       value: funds,
     });
   }
@@ -216,6 +218,7 @@ function App() {
               <h2>{selectedMarket.name}</h2>
               <div className="tabs">
                 <button className={tab === 'order' ? 'tab active' : 'tab'} onClick={() => setTab('order')}>Manual Order</button>
+                <button className={tab === 'parimutuel' ? 'tab active' : 'tab'} onClick={() => setTab('parimutuel')}>Parimutuel</button>
                 <button className={tab === 'agent' ? 'tab active' : 'tab'} onClick={() => setTab('agent')}>AI Agent</button>
               </div>
 
@@ -254,14 +257,68 @@ function App() {
 
                     <button type="submit" className="submit-btn">Submit Order</button>
                   </form>
-                  <button className="redemption-btn" onClick={() => alert('Redemption coming soon')}>Redemption (Sell Position)</button>
-                  <div className="poi-section">
-                    <button className="poi-btn" onClick={handlePoI}>+ Add PoI Prediction</button>
-                    <small>Auto market order × 1 in PoI market</small>
-                  </div>
+
+
                 </div>
               )}
 
+              {tab === 'parimutuel' && (
+                <div className="order-form">
+                  <h3 style={{marginBottom:'16px',color:'#c9a84c'}}>Parimutuel Betting</h3>
+                  <div className="form-group">
+                    <label>Select outcomes and enter amount (ETH)</label>
+                    {selectedMarket && selectedMarket.outcomes.map((o, i) => (
+                      <div key={i} style={{display:'flex',alignItems:'center',gap:'12px',marginBottom:'8px'}}>
+                        <span style={{width:'120px',color:'#e2e8f0'}}>{o}</span>
+                        <input
+                          type="number"
+                          placeholder="0.00 ETH"
+                          min="0"
+                          step="0.001"
+                          style={{width:'120px',padding:'6px',background:'#0f1117',border:'1px solid #2e3347',color:'#e2e8f0',borderRadius:'4px'}}
+                          value={pariAmounts[i] || ''}
+                          onChange={e => setPariAmounts(prev => ({...prev, [i]: e.target.value}))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{color:'#8892a4',fontSize:'0.8rem',marginBottom:'12px'}}>
+                    💡 Parimutuel Player: bet on any outcome → PoI counted, win/lose on your stake<br/>
+                    💡 LP Provider: stake on ALL outcomes proportionally → maintain liquidity, earn LP fee (PoI not counted — you are not predicting, you are providing liquidity)
+                  </div>
+                  <button className="submit-btn" onClick={() => {
+                    if (!selectedMarket) return;
+                    const o = selectedMarket.outcomes[0];
+                    const amount = parseFloat(pariAmounts[0] || '0');
+                    if (amount > 0) writeContract({
+                      address: MARKET_ADDRESS,
+                      abi: BPAMarketABI.abi,
+                      functionName: 'submitOrder',
+                      args: [selectedMarket.id, o, 1, Math.round(0.999 * 1e18), 0],
+                      value: parseEther('0.002'),
+                    });
+                  }}>Place Bets</button>
+                  <div className="poi-section" style={{marginTop:'16px'}}>
+                    <button className="poi-btn" onClick={() => {
+                      if (!selectedMarket) return;
+                      let totalAmount = 0;
+                      selectedMarket.outcomes.forEach((o, i) => {
+                        totalAmount += parseFloat(pariAmounts[i] || '0');
+                      });
+                      if (totalAmount > 0) {
+                        writeContract({
+                          address: MARKET_ADDRESS,
+                          abi: BPAMarketABI.abi,
+                          functionName: 'submitSeedOrder',
+                          args: [selectedMarket.id],
+                          value: parseEther(totalAmount.toFixed(6)),
+                        });
+                      }
+                    }}>💧 Provide Liquidity (LP Seed)</button>
+                    <small>Must have PoI NFT — earn LP fee, liquidity provider role</small>
+                  </div>
+                </div>
+              )}
               {tab === 'agent' && (
                 <div className="agent-form">
                   <div className="agent-block">
