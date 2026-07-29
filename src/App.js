@@ -116,20 +116,27 @@ function App() {
     } catch { return null; }
   }
 
-  function handleOrder(e) {
+  async function handleOrder(e) {
     e.preventDefault();
     if (!selectedMarket) return;
     const price = parseFloat(limitPrice);
     const qty = parseInt(quantity);
     const funds = parseEther('0.002');  // oracle fee only
     alert('outcome: ' + selectedMarket.outcomes[outcome] + ' qty:' + qty + ' price:' + Math.round(price * 1e18));
-    writeContract({
-      address: MARKET_ADDRESS,
-      abi: BPAMarketABI.abi,
-      functionName: 'submitOrder',
-      args: [selectedMarket.id, selectedMarket.outcomes[outcome], qty, Math.round(price * 1e18), side === 'buy' ? 0 : 1],
-      value: funds,
-    });
+    if (window.ethereum) {
+      const ethers = await import('ethers');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
+      const contract = new ethers.Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
+      await contract.submitOrder(
+        selectedMarket.id,
+        selectedMarket.outcomes[outcome],
+        qty,
+        ethers.parseEther(price.toFixed(18)),
+        side === 'buy' ? 0 : 1,
+        {value: funds}
+      );
+    }
   }
 
   function handlePoI() {
