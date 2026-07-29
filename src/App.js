@@ -331,7 +331,9 @@ function App() {
                         const provider = new BrowserProvider(window.ethereum);
                         const signer = await provider.getSigner();
                         const contract = new Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
+                        try {
                         await contract.submitSeedOrder(selectedMarket.id, {value: pe(parseFloat(lpAmount).toFixed(6))});
+                        } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
                       }
                       if (!selectedMarket) return;
                       let totalAmount = 0;
