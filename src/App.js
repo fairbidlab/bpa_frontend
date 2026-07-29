@@ -293,17 +293,22 @@ function App() {
                     💡 Parimutuel Player: bet on any outcome → PoI counted, win/lose on your stake<br/>
                     💡 LP Provider: stake on ALL outcomes proportionally → maintain liquidity, earn LP fee (PoI not counted — you are not predicting, you are providing liquidity)
                   </div>
-                  <button className="submit-btn" onClick={() => {
+                  <button className="submit-btn" onClick={async () => {
                     if (!selectedMarket) return;
                     const o = selectedMarket.outcomes[0];
                     const amount = parseFloat(pariAmounts[0] || '0');
-                    if (amount > 0) writeContract({
-                      address: MARKET_ADDRESS,
-                      abi: BPAMarketABI.abi,
-                      functionName: 'submitOrder',
-                      args: [selectedMarket.id, o, 1, Math.round(0.999 * 1e18), 0],
-                      value: parseEther('0.002'),
-                    });
+                    if (amount > 0 && window.ethereum) {
+                      const { BrowserProvider, Contract, parseEther: pe } = await import('ethers');
+                      const provider = new BrowserProvider(window.ethereum);
+                      const signer = await provider.getSigner();
+                      const contract = new Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
+                      await contract.submitOrder(
+                        selectedMarket.id, o, 1,
+                        pe('0.999'),
+                        0,
+                        {value: pe('0.002')}
+                      );
+                    }
                   }}>Place Bets</button>
                   <div className="poi-section" style={{marginTop:'16px'}}>
                     <button className="poi-btn" onClick={() => {
