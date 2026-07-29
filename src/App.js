@@ -25,6 +25,7 @@ function App() {
   const [organizerMode, setOrganizerMode] = useState(false);
   const [agentCategory, setAgentCategory] = useState('sport');
   const [pariAmounts, setPariAmounts] = useState({});
+  const [lpAmount, setLpAmount] = useState('');
   const [minDistortion, setMinDistortion] = useState('10');
   const [crossingOnly, setCrossingOnly] = useState(false);
   const [distortionDirection, setDistortionDirection] = useState('undervalued');
@@ -128,14 +129,16 @@ function App() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
-      await contract.submitOrder(
-        selectedMarket.id,
-        selectedMarket.outcomes[outcome],
-        qty,
-        ethers.parseEther(price.toFixed(18)),
-        side === 'buy' ? 0 : 1,
-        {value: funds}
-      );
+      try {
+        await contract.submitOrder(
+          selectedMarket.id,
+          selectedMarket.outcomes[outcome],
+          qty,
+          ethers.parseEther(price.toFixed(18)),
+          side === 'buy' ? 0 : 1,
+          {value: funds}
+        );
+      } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
     }
   }
 
@@ -298,20 +301,38 @@ function App() {
                     const o = selectedMarket.outcomes[0];
                     const amount = parseFloat(pariAmounts[0] || '0');
                     if (amount > 0 && window.ethereum) {
-                      const { BrowserProvider, Contract, parseEther: pe } = await import('ethers');
-                      const provider = new BrowserProvider(window.ethereum);
-                      const signer = await provider.getSigner();
-                      const contract = new Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
-                      await contract.submitOrder(
-                        selectedMarket.id, o, 1,
-                        pe('0.999'),
-                        0,
-                        {value: pe('0.002')}
-                      );
+                      try {
+                        const { BrowserProvider, Contract, parseEther: pe } = await import('ethers');
+                        const provider = new BrowserProvider(window.ethereum);
+                        const signer = await provider.getSigner();
+                        const contract = new Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
+                        await contract.submitOrder(
+                          selectedMarket.id, o, 1,
+                          pe('0.999'),
+                          0,
+                          {value: pe('0.002')}
+                        );
+                      } catch(e) {
+                        if (!e.message?.includes('rejected')) alert('Error: ' + e.reason || e.message);
+                      }
                     }
                   }}>Place Bets</button>
                   <div className="poi-section" style={{marginTop:'16px'}}>
-                    <button className="poi-btn" onClick={() => {
+                    <div className="form-group" style={{marginBottom:'8px'}}>
+                      <label>Total Amount (ETH)</label>
+                      <input type="number" placeholder="0.00" min="0" step="0.001"
+                        style={{width:'120px',padding:'6px',background:'#0f1117',border:'1px solid #2e3347',color:'#e2e8f0',borderRadius:'4px'}}
+                        value={lpAmount} onChange={e => setLpAmount(e.target.value)} />
+                    </div>
+                    <button className="poi-btn" onClick={async () => {
+                      if (!selectedMarket || !lpAmount || parseFloat(lpAmount) <= 0) return;
+                      if (window.ethereum) {
+                        const { BrowserProvider, Contract, parseEther: pe } = await import('ethers');
+                        const provider = new BrowserProvider(window.ethereum);
+                        const signer = await provider.getSigner();
+                        const contract = new Contract(MARKET_ADDRESS, BPAMarketABI.abi, signer);
+                        await contract.submitSeedOrder(selectedMarket.id, {value: pe(parseFloat(lpAmount).toFixed(6))});
+                      }
                       if (!selectedMarket) return;
                       let totalAmount = 0;
                       selectedMarket.outcomes.forEach((o, i) => {
