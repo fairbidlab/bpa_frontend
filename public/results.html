@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA Market — My Results</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; padding: 20px; }
+    h1 { color: #5b8dee; margin-bottom: 20px; }
+    .card { background: #1a1d2e; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid #2e3347; }
+    .card h2 { color: #c9a84c; margin-bottom: 12px; font-size: 1rem; }
+    .btn { padding: 6px 14px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-right: 8px; margin-top: 8px; }
+    .btn-connect { background: #5b8dee; color: white; }
+    .btn-dispute { background: #c9a84c; color: #000; }
+    .btn-uphold { background: #22c55e; color: white; }
+    .btn-reject { background: #ef4444; color: white; }
+    .label { color: #8892a4; font-size: 0.8rem; }
+    .value { color: #e2e8f0; font-size: 1.1rem; font-weight: 600; }
+    .green { color: #22c55e; }
+    .red { color: #ef4444; }
+    .market-item { border-bottom: 1px solid #2e3347; padding-bottom: 12px; margin-bottom: 12px; }
+    .market-item:last-child { border-bottom: none; }
+    .address { font-family: monospace; font-size: 0.85rem; color: #5b8dee; }
+    #status { color: #8892a4; margin-bottom: 16px; }
+  </style>
+</head>
+<body>
+  <h1>📊 BPA Market — My Results</h1>
+  <div id="status">Not connected</div>
+  <button class="btn btn-connect" onclick="connect()">🔗 Connect Wallet</button>
+
+  <div id="content" style="display:none; margin-top:20px;">
+    <div class="card">
+      <h2>👤 My Wallet</h2>
+      <div class="label">Address</div>
+      <div class="address" id="walletAddress">—</div>
+      <div style="margin-top:8px">
+        <div class="label">ETH Balance</div>
+        <div class="value" id="ethBalance">—</div>
+      </div>
+    </div>
+
+    <div class="card" id="poiCard">
+      <h2>🏆 My PoI Score</h2>
+      <div class="value" id="poiTotal">Loading...</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;font-size:0.8rem">
+        <span class="label">⚽ Sport:</span><span id="poiSport" class="green">0</span>
+        <span class="label">💰 Finance:</span><span id="poiFinance" class="green">0</span>
+        <span class="label">🗳️ Politics:</span><span id="poiPolitics" class="green">0</span>
+        <span class="label">🌤️ Weather:</span><span id="poiWeather" class="green">0</span>
+        <span class="label">⚡ Rare:</span><span id="poiRare" class="green">0</span>
+      </div>
+      <div id="poiLevel" style="margin-top:12px;font-size:1.1rem">—</div>
+    </div>
+
+    <div class="card">
+      <h2>📋 My Markets</h2>
+      <div id="marketsList">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    const BPA_MARKET = '0xbEA73884f835982627cf9fB4a95e39D7BB01752E';
+    const AGENT_POI = '0x6f9bf6E41a0Bce75C2563740495eD43d7aD06251';
+    const DISPUTE_ORACLE = '0x9d57D9B27Ed51C3BA843233224C4A469beaebb68';
+
+    const MARKET_ABI = [
+      "function marketCount() view returns (uint256)",
+      "function markets(uint256) view returns (uint256,string,uint8,uint8,uint256,uint256,string,address)",
+      "function claimableBalance(address) view returns (uint256)",
+      "function claimBalance()"
+    ];
+    const POI_ABI = [
+      "function getAgentPoI(address) view returns (int256,uint256)",
+      "function getCategoryPoI(address,string) view returns (int256,uint256)"
+    ];
+    const DISPUTE_ABI = [
+      "function fileDispute(uint256) payable",
+      "function castVote(uint256,bool)",
+      "function verdicts(uint256) view returns (uint256,string,uint256,uint8,address,uint256,bool,uint256,uint256,uint256,bool)"
+    ];
+
+    let provider, signer, userAddress;
+
+    async function connect() {
+      if (!window.ethereum) { alert('Please install a Web3 wallet (MetaMask, Rabby, etc.)'); return; }
+      try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById('walletAddress').textContent = userAddress;
+        document.getElementById('status').textContent = 'Connected!';
+        document.getElementById('content').style.display = 'block';
+        await loadAll();
+      } catch(e) { alert('Connection failed: ' + e.message); }
+    }
+
+    async function loadAll() {
+      await loadBalance();
+      await loadPoI();
+      await loadMarkets();
+    }
+
+    async function loadBalance() {
+      const bal = await provider.getBalance(userAddress);
+      document.getElementById('ethBalance').textContent = parseFloat(ethers.formatEther(bal)).toFixed(4) + ' ETH';
+    }
+
+    async function loadPoI() {
+      const poi = new ethers.Contract(AGENT_POI, POI_ABI, provider);
+      const total = await poi.getAgentPoI(userAddress);
+      const totalPoi = parseFloat(ethers.formatEther(total[0]));
+      const count = Number(total[1]);
+      document.getElementById('poiTotal').textContent = totalPoi.toFixed(4);
+
+      const categories = ['football','finance','politics','weather','rare'];
+      const ids = ['poiSport','poiFinance','poiPolitics','poiWeather','poiRare'];
+      for (let i = 0; i < categories.length; i++) {
+        const cat = await poi.getCategoryPoI(userAddress, categories[i]);
+        const val = parseFloat(ethers.formatEther(cat[0]));
+        const el = document.getElementById(ids[i]);
+        el.textContent = val.toFixed(4);
+        el.className = val >= 0 ? 'green' : 'red';
+      }
+
+      // Level
+      const avg = count > 0 ? totalPoi / count : 0;
+      let level = '— Unranked';
+      if (count >= 200 && avg > 0.40) level = '🔮 Oracle';
+      else if (count >= 100 && avg > 0.25) level = '💎 Platinum';
+      else if (count >= 50 && avg > 0.15) level = '🥇 Gold';
+      else if (count >= 20 && avg > 0.05) level = '🥈 Silver';
+      else if (count >= 10 && avg > 0.00) level = '🥉 Bronze';
+      document.getElementById('poiLevel').textContent = level;
+    }
+
+    async function loadMarkets() {
+      const market = new ethers.Contract(BPA_MARKET, MARKET_ABI, provider);
+      const count = Number(await market.marketCount());
+      const dispute = new ethers.Contract(DISPUTE_ORACLE, DISPUTE_ABI, provider);
+      let html = '';
+
+      for (let i = 1; i <= count; i++) {
+        const m = await market.markets(i);
+        const name = m[1];
+        const status = Number(m[2]);
+        const winner = m[6];
+        const claimable = await market.claimableBalance(userAddress);
+
+        const statusText = status === 0 ? '🟢 Open' : status === 1 ? '🟡 Pending' : '✅ Resolved';
+        const winnerText = winner ? `Winner: <span class="green">${winner}</span>` : '';
+        const claimText = claimable > 0n ? `<span class="green">Claimable: ${parseFloat(ethers.formatEther(claimable)).toFixed(4)} ETH</span>` : '';
+
+        html += `<div class="market-item">
+          <div style="font-weight:600">${name}</div>
+          <div class="label">Market #${i} · ${statusText}</div>
+          ${winnerText ? `<div style="margin-top:4px">${winnerText}</div>` : ''}
+          ${claimText ? `<div style="margin-top:4px">${claimText}</div>` : ''}
+          <div style="margin-top:8px">
+            ${status === 2 ? `<button class="btn btn-dispute" onclick="fileDispute(${i})">⚠️ Dispute</button>` : ''}
+            <button class="btn btn-uphold" onclick="castVote(${i}, true)">✓ Vote Uphold</button>
+            <button class="btn btn-reject" onclick="castVote(${i}, false)">✗ Vote Reject</button>
+            ${claimable > 0n ? `<button class="btn btn-connect" onclick="claimBalance()">💰 Claim</button>` : ''}
+          </div>
+        </div>`;
+      }
+      document.getElementById('marketsList').innerHTML = html || 'No markets found';
+    }
+
+    async function fileDispute(marketId) {
+      try {
+        const dispute = new ethers.Contract(DISPUTE_ORACLE, DISPUTE_ABI, signer);
+        await dispute.fileDispute(marketId, {value: ethers.parseEther('0.01')});
+        alert('Dispute filed!');
+      } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
+    }
+
+    async function castVote(marketId, uphold) {
+      try {
+        const dispute = new ethers.Contract(DISPUTE_ORACLE, DISPUTE_ABI, signer);
+        await dispute.castVote(marketId, uphold);
+        alert('Vote cast!');
+      } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
+    }
+
+    async function claimBalance() {
+      try {
+        const market = new ethers.Contract(BPA_MARKET, MARKET_ABI, signer);
+        await market.claimBalance();
+        alert('Claimed!');
+        await loadBalance();
+      } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
+    }
+  </script>
+</body>
+</html>
