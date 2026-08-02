@@ -90,10 +90,9 @@ function App() {
   });
   useEffect(() => {
     setMarkets([
-      {id:1, name:'England vs Ghana', outcomes:['England','Draw','Ghana'], status:0},
-      {id:3, name:'Germany vs Spain - Euro 2026', outcomes:['Germany','Draw','Spain'], status:0},
+      {id:3, name:'England vs Germany - Premier League 2026', outcomes:['England','Draw','Germany'], status:0},
     ]);
-    setSelectedMarket({id:1, name:'England vs Ghana', outcomes:['England','Draw','Ghana'], status:0});
+    setSelectedMarket({id:3, name:'England vs Germany - Premier League 2026', outcomes:['England','Draw','Germany'], status:0});
   }, []);
 
   function parseMarket(r) {
@@ -298,8 +297,9 @@ function App() {
                   </div>
                   <button className="submit-btn" onClick={async () => {
                     if (!selectedMarket) return;
-                    const o = selectedMarket.outcomes[0];
-                    const amount = parseFloat(pariAmounts[0] || '0');
+                    const filledIndex = selectedMarket.outcomes.findIndex((_, i) => parseFloat(pariAmounts[i] || '0') > 0);
+                    const o = filledIndex >= 0 ? selectedMarket.outcomes[filledIndex] : selectedMarket.outcomes[0];
+                    const amount = filledIndex >= 0 ? parseFloat(pariAmounts[filledIndex] || '0') : 0;
                     if (amount > 0 && window.ethereum) {
                       try {
                         const { BrowserProvider, Contract, parseEther: pe } = await import('ethers');

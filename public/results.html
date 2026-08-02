@@ -62,7 +62,7 @@
   </div>
 
   <script>
-    const BPA_MARKET = '0xbEA73884f835982627cf9fB4a95e39D7BB01752E';
+    const BPA_MARKET = '0x2D6AaDb3fb690E4f8a09Ed11cA812D51C949b0a8';
     const AGENT_POI = '0x6f9bf6E41a0Bce75C2563740495eD43d7aD06251';
     const DISPUTE_ORACLE = '0x9d57D9B27Ed51C3BA843233224C4A469beaebb68';
 
@@ -70,7 +70,10 @@
       "function marketCount() view returns (uint256)",
       "function markets(uint256) view returns (uint256,string,uint8,uint8,uint256,uint256,string,address)",
       "function claimableBalance(address) view returns (uint256)",
-      "function claimBalance()"
+      "function claimBalance()",
+      "function batchCount() view returns (uint256)",
+      "function batches(uint256) view returns (uint256,uint256,uint256,bool)",
+      "function currentBatch(uint256) view returns (uint256)"
     ];
     const POI_ABI = [
       "function getAgentPoI(address) view returns (int256,uint256)",
@@ -149,6 +152,23 @@
         const winner = m[6];
         const claimable = await market.claimableBalance(userAddress);
 
+        // Get batch data
+        let batchInfo = '';
+        try {
+          const batchId = await market.currentBatch(i);
+          if (Number(batchId) > 0) {
+            const batch = await market.batches(batchId);
+            const mStar = Number(batch[2]) / 1e15;
+            if (mStar > 0) {
+              batchInfo = `<div style="background:#0f1117;border-radius:4px;padding:8px;margin-top:8px;font-size:0.8rem;">
+                <span style="color:#c9a84c;">📊 Baron-Lange:</span>
+                <span style="color:#e2e8f0;margin-left:8px;">M* = ${mStar.toFixed(4)}</span>
+                <span style="color:#8892a4;margin-left:8px;">Batch #${Number(batchId)}</span>
+                <div style="margin-top:4px;font-size:0.75rem;">England: ${(1/mStar).toFixed(3)} · Draw: ${(1/mStar).toFixed(3)} · Germany: ${(1/mStar).toFixed(3)}</div>
+              </div>`;
+            }
+          }
+        } catch(e) {}
         const statusText = status === 0 ? '🟢 Open' : status === 1 ? '🟡 Pending' : '✅ Resolved';
         const winnerText = winner ? `Winner: <span class="green">${winner}</span>` : '';
         const claimText = claimable > 0n ? `<span class="green">Claimable: ${parseFloat(ethers.formatEther(claimable)).toFixed(4)} ETH</span>` : '';
@@ -158,6 +178,7 @@
           <div class="label">Market #${i} · ${statusText}</div>
           ${winnerText ? `<div style="margin-top:4px">${winnerText}</div>` : ''}
           ${claimText ? `<div style="margin-top:4px">${claimText}</div>` : ''}
+          ${batchInfo}
           <div style="margin-top:8px">
             ${status === 2 ? `<button class="btn btn-dispute" onclick="fileDispute(${i})">⚠️ Dispute</button>` : ''}
             <button class="btn btn-uphold" onclick="castVote(${i}, true)">✓ Vote Uphold</button>

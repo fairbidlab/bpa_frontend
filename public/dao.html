@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA Market — DAO Calendar</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #0f1117; color: #e2e8f0; padding: 20px; max-width: 800px; margin: 0 auto; }
+    h1 { color: #5b8dee; margin-bottom: 20px; }
+    .card { background: #1a1d2e; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid #2e3347; }
+    .card h2 { color: #c9a84c; margin-bottom: 12px; font-size: 1rem; }
+    label { color: #8892a4; font-size: 0.85rem; display: block; margin-bottom: 4px; margin-top: 10px; }
+    input, select { width: 100%; padding: 8px; background: #0f1117; border: 1px solid #2e3347; color: #e2e8f0; border-radius: 4px; font-size: 0.9rem; }
+    .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-right: 8px; margin-top: 8px; }
+    .btn-connect { background: #5b8dee; color: white; }
+    .btn-propose { background: #c9a84c; color: #000; font-weight: 600; }
+    .btn-approve { background: #22c55e; color: white; }
+    .btn-reject { background: #ef4444; color: white; }
+    .event-item { border-bottom: 1px solid #2e3347; padding: 12px 0; }
+    .event-item:last-child { border-bottom: none; }
+    .address { font-family: monospace; font-size: 0.8rem; color: #5b8dee; }
+    .ai-check { border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 0.85rem; }
+    .timer { color: #c9a84c; font-size: 0.8rem; margin-top: 4px; }
+    .blocked { color: #ef4444; font-weight: 600; }
+    .weight { color: #8892a4; font-size: 0.75rem; }
+  </style>
+</head>
+<body>
+  <h1>🗓️ BPA Market — DAO Calendar</h1>
+  
+  <button class="btn btn-connect" id="connectBtn" onclick="connect()">🔗 Connect Wallet</button>
+  <div id="walletInfo" style="display:none; margin-bottom:16px; font-size:0.85rem;">
+    <span class="address" id="walletAddr"></span>
+    <span id="myWeight" style="color:#c9a84c; margin-left:12px;"></span>
+  </div>
+
+  <div class="card">
+    <h2>📝 Propose New Market</h2>
+    
+    <label>Event Type</label>
+    <select id="eventType" onchange="updateForm()">
+      <option value="sport">⚽ Sport</option>
+      <option value="finance">💰 Finance</option>
+      <option value="politics">🗳️ Politics</option>
+      <option value="weather">🌤️ Weather</option>
+      <option value="rare">⚡ Rare Event</option>
+    </select>
+
+    <label>Event Name</label>
+    <input type="text" id="eventName" placeholder="e.g. Arsenal vs Chelsea" />
+
+    <label>Outcomes (comma separated)</label>
+    <input type="text" id="outcomes" placeholder="e.g. Arsenal, Draw, Chelsea" value="Home Win, Draw, Away Win" />
+
+    <div id="dateField" style="display:none;">
+      <label>Event Date (for weather/rare events)</label>
+      <input type="datetime-local" id="eventDate" />
+    </div>
+
+    <div id="aiCheckResult" class="ai-check" style="display:none;"></div>
+    <button class="btn btn-propose" onclick="checkAndPropose()">🤖 AI Check & Propose</button>
+  </div>
+
+  <div class="card">
+    <h2>📋 Proposed Markets — DAO Voting (20 min window)</h2>
+    <div id="proposalsList"><div style="color:#8892a4">No pending proposals</div></div>
+  </div>
+
+  <div class="card">
+    <h2>✅ Approved Markets on Blockchain</h2>
+    <div id="approvedList">Connect wallet to load...</div>
+  </div>
+
+  <script>
+    const BPA_MARKET = '0x2D6AaDb3fb690E4f8a09Ed11cA812D51C949b0a8';
+    const AGENT_POI = '0x6f9bf6E41a0Bce75C2563740495eD43d7aD06251';
+    const MARKET_ABI = [
+      "function marketCount() view returns (uint256)",
+      "function markets(uint256) view returns (uint256,string,uint8,uint8,uint256,uint256,string,address)",
+      "function createMarket(string,string[],uint256,uint256[]) returns (uint256,uint256)"
+    ];
+    const POI_ABI = [
+      "function getAgentPoI(address) view returns (int256,uint256)"
+    ];
+
+    const VOTE_DURATION_MS = 20 * 60 * 1000; // 20 minutes
+    const MIN_APPROVE_WEIGHT = 0.0; // minimum total approve weight to pass
+
+    let provider, signer, userAddress, myPoiWeight = 1.0;
+    let proposals = JSON.parse(localStorage.getItem('bpa_dao_proposals') || '[]');
+
+    // PoI weight formula: weight = max(0.1, 1 + poi_score)
+    function poiToWeight(poiScore) {
+      return Math.max(0.1, 1.0 + poiScore);
+    }
+
+    async function connect() {
+      if (!window.ethereum) { alert('Please install a Web3 wallet'); return; }
+      try {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        userAddress = await signer.getAddress();
+        document.getElementById('walletAddr').textContent = userAddress;
+        document.getElementById('walletInfo').style.display = 'block';
+        document.getElementById('connectBtn').textContent = '✅ Connected';
+
+        // Load user PoI weight
+        const poi = new ethers.Contract(AGENT_POI, POI_ABI, provider);
+        const poiData = await poi.getAgentPoI(userAddress);
+        const poiScore = parseFloat(ethers.formatEther(poiData[0]));
+        myPoiWeight = poiToWeight(poiScore);
+        document.getElementById('myWeight').textContent = `Vote weight: ${myPoiWeight.toFixed(2)}`;
+
+        await loadApproved();
+        renderProposals();
+        setInterval(checkTimers, 30000); // check timers every 30 seconds
+      } catch(e) { alert('Error: ' + e.message); }
+    }
+
+    function updateForm() {
+      const type = document.getElementById('eventType').value;
+      document.getElementById('dateField').style.display = 
+        (type === 'weather' || type === 'rare') ? 'block' : 'none';
+      if (type === 'sport') document.getElementById('outcomes').value = 'Home Win, Draw, Away Win';
+      else if (type === 'finance') document.getElementById('outcomes').value = 'Up, Stable, Down';
+      else if (type === 'politics') document.getElementById('outcomes').value = 'Yes, No';
+    }
+
+    async function checkAndPropose() {
+      const name = document.getElementById('eventName').value.trim();
+      const outcomesRaw = document.getElementById('outcomes').value;
+      const type = document.getElementById('eventType').value;
+
+      if (!name) { alert('Please enter event name'); return; }
+      const outcomes = outcomesRaw.split(',').map(o => o.trim()).filter(o => o);
+      if (outcomes.length < 2) { alert('Need at least 2 outcomes'); return; }
+
+      const aiDiv = document.getElementById('aiCheckResult');
+      aiDiv.style.display = 'block';
+      aiDiv.style.background = '#0f1117';
+      aiDiv.textContent = '🤖 AI Agent checking...';
+      aiDiv.style.color = '#8892a4';
+
+      await new Promise(r => setTimeout(r, 800));
+
+      // AI blocking checks
+      if (name.length < 5) {
+        aiDiv.textContent = '🚫 AI BLOCKED: Event name too short';
+        aiDiv.style.color = '#ef4444';
+        return;
+      }
+      const duplicate = proposals.find(p => 
+        p.name.toLowerCase() === name.toLowerCase() && p.status === 'pending'
+      );
+      if (duplicate) {
+        aiDiv.textContent = '🚫 AI BLOCKED: Duplicate market already proposed';
+        aiDiv.style.color = '#ef4444';
+        return;
+      }
+      // Check if sport event has "vs" 
+      if (type === 'sport' && !name.toLowerCase().includes('vs')) {
+        aiDiv.textContent = '🚫 AI BLOCKED: Sport event must have format "Team A vs Team B"';
+        aiDiv.style.color = '#ef4444';
+        return;
+      }
+
+      // AI approves - calculate AI PoI weight (use same formula)
+      const aiPoiScore = -0.15; // current AI agent PoI (from blockchain)
+      const aiWeight = poiToWeight(aiPoiScore);
+
+      aiDiv.textContent = `✅ AI approved (weight: ${aiWeight.toFixed(2)}) — Voting window: 20 minutes`;
+      aiDiv.style.color = '#22c55e';
+
+      const proposal = {
+        id: Date.now(),
+        name,
+        outcomes,
+        type,
+        proposer: userAddress,
+        votes: [{ voter: 'AI Agent', weight: aiWeight, approve: true, timestamp: Date.now() }],
+        aiBlocked: false,
+        status: 'pending',
+        createdAt: Date.now(),
+        endsAt: Date.now() + VOTE_DURATION_MS
+      };
+
+      proposals.push(proposal);
+      localStorage.setItem('bpa_dao_proposals', JSON.stringify(proposals));
+      document.getElementById('eventName').value = '';
+      renderProposals();
+    }
+
+    function vote(proposalId, approve) {
+      if (!userAddress) { alert('Connect wallet first'); return; }
+      const p = proposals.find(p => p.id === proposalId);
+      if (!p || p.status !== 'pending') return;
+
+      // Check if already voted
+      const alreadyVoted = p.votes.find(v => v.voter === userAddress);
+      if (alreadyVoted) { alert('You already voted on this proposal'); return; }
+
+      p.votes.push({ voter: userAddress, weight: myPoiWeight, approve, timestamp: Date.now() });
+      localStorage.setItem('bpa_dao_proposals', JSON.stringify(proposals));
+      renderProposals();
+    }
+
+    function getVoteTotals(p) {
+      let approveWeight = 0, rejectWeight = 0;
+      p.votes.forEach(v => {
+        if (v.approve) approveWeight += v.weight;
+        else rejectWeight += v.weight;
+      });
+      return { approveWeight, rejectWeight };
+    }
+
+    async function checkTimers() {
+      const now = Date.now();
+      let changed = false;
+      for (const p of proposals) {
+        if (p.status !== 'pending') continue;
+        if (now >= p.endsAt) {
+          const { approveWeight, rejectWeight } = getVoteTotals(p);
+          if (approveWeight > rejectWeight && approveWeight >= MIN_APPROVE_WEIGHT) {
+            await createMarketOnChain(p);
+          } else {
+            p.status = 'rejected';
+          }
+          changed = true;
+        }
+      }
+      if (changed) {
+        localStorage.setItem('bpa_dao_proposals', JSON.stringify(proposals));
+        renderProposals();
+        await loadApproved();
+      }
+    }
+
+    async function createMarketOnChain(p) {
+      if (!signer) return;
+      try {
+        const market = new ethers.Contract(BPA_MARKET, MARKET_ABI, signer);
+        const seedPrices = p.outcomes.map(() => 
+          ethers.parseEther((1/p.outcomes.length).toFixed(6))
+        );
+        const endTime = Math.floor(Date.now() / 1000) + 86400 * 30;
+        await market.createMarket(p.name, p.outcomes, endTime, seedPrices);
+        p.status = 'approved';
+        localStorage.setItem('bpa_dao_proposals', JSON.stringify(proposals));
+      } catch(e) {
+        console.error('Create market error:', e);
+      }
+    }
+
+    function timeLeft(endsAt) {
+      const ms = endsAt - Date.now();
+      if (ms <= 0) return 'Voting ended';
+      const min = Math.floor(ms / 60000);
+      const sec = Math.floor((ms % 60000) / 1000);
+      return `${min}m ${sec}s remaining`;
+    }
+
+    function renderProposals() {
+      const list = document.getElementById('proposalsList');
+      const pending = proposals.filter(p => p.status === 'pending');
+
+      if (pending.length === 0) {
+        list.innerHTML = '<div style="color:#8892a4">No pending proposals</div>';
+        return;
+      }
+
+      list.innerHTML = pending.map(p => {
+        const { approveWeight, rejectWeight } = getVoteTotals(p);
+        const myVote = p.votes.find(v => v.voter === userAddress);
+        const canVote = !myVote && userAddress;
+        return `
+        <div class="event-item">
+          <div style="font-weight:600">${p.name}</div>
+          <div style="font-size:0.8rem;color:#8892a4">Type: ${p.type} · Outcomes: ${p.outcomes.join(', ')}</div>
+          <div class="timer">⏱️ ${timeLeft(p.endsAt)}</div>
+          <div style="font-size:0.85rem;margin-top:6px;">
+            Approve weight: <span style="color:#22c55e">${approveWeight.toFixed(2)}</span> / 
+            Reject weight: <span style="color:#ef4444">${rejectWeight.toFixed(2)}</span>
+            <span style="color:#8892a4"> (need ${MIN_APPROVE_WEIGHT} to pass)</span>
+          </div>
+          <div style="font-size:0.75rem;color:#8892a4;margin-top:4px;">
+            ${p.votes.map(v => `${v.voter === 'AI Agent' ? '🤖' : '👤'} ${v.voter.length > 10 ? v.voter.slice(0,6)+'...' : v.voter}: ${v.approve ? '✓' : '✗'} (${v.weight.toFixed(2)})`).join(' · ')}
+          </div>
+          ${myVote ? `<div style="color:#c9a84c;font-size:0.8rem;margin-top:4px;">You voted: ${myVote.approve ? '✓ Approve' : '✗ Reject'}</div>` : ''}
+          ${canVote ? `
+            <button class="btn btn-approve" onclick="vote(${p.id}, true)">✓ Approve (weight: ${myPoiWeight.toFixed(2)})</button>
+            <button class="btn btn-reject" onclick="vote(${p.id}, false)">✗ Reject (weight: ${myPoiWeight.toFixed(2)})</button>
+          ` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    async function loadApproved() {
+      if (!provider) return;
+      try {
+        const market = new ethers.Contract(BPA_MARKET, MARKET_ABI, provider);
+        const count = Number(await market.marketCount());
+        let html = '';
+        for (let i = 1; i <= count; i++) {
+          const m = await market.markets(i);
+          if (Number(m[3]) === 0) {
+            html += `<div class="event-item">
+              <div style="font-weight:600">${m[1]}</div>
+              <div style="font-size:0.8rem;color:#8892a4">Market #${i} · ${Number(m[2]) === 0 ? '🟢 Open' : '✅ Resolved'}</div>
+            </div>`;
+          }
+        }
+        document.getElementById('approvedList').innerHTML = html || '<div style="color:#8892a4">No markets yet</div>';
+      } catch(e) { document.getElementById('approvedList').innerHTML = '<div style="color:#ef4444">Error loading markets</div>'; }
+    }
+
+    updateForm();
+  </script>
+</body>
+</html>
