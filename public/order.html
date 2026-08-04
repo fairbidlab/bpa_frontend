@@ -66,10 +66,13 @@
   <div class="card">
     <h2>🎯 Order Type</h2>
     <div class="tabs">
-      <button class="tab active" onclick="switchTab('manual', this)">Manual Order</button>
-      <button class="tab" onclick="switchTab('parimutuel', this)">Parimutuel</button>
+      <button class="tab active" onclick="switchTab('manual', this)">Fix Bet</button>
+      <button class="tab" onclick="switchTab('parimutuel', this)">Pool Bet</button>
       <button class="tab" onclick="switchTab('liquidity', this)">Provide Liquidity</button>
       <button class="tab" onclick="switchTab('agent', this)">AI Agent</button>
+    </div>
+    <div id="tab-desc" style="font-size:0.75rem;color:#8892a4;margin-top:4px;margin-bottom:8px;">
+      Fix Bet — Fixed payout. You know exactly what you win.
     </div>
 
     <!-- Manual Order -->
@@ -111,7 +114,7 @@
     <!-- AI Agent -->
     <div id="tab-agent" class="section">
       <div style="color:#8892a4;font-size:0.8rem;margin-bottom:8px;">
-        AI GNN Agent analyzes market and creates signed orders automatically.
+        
       </div>
       <label>Category</label>
       <select id="agentCategory">
@@ -166,6 +169,13 @@
       document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
+      const descs = {
+        'manual': 'Fix Bet — Fixed payout. You know exactly what you win.',
+        'parimutuel': 'Variable payout — depends on total pool size.',
+        'liquidity': 'Earn LP fee — stake on all outcomes proportionally.',
+        'agent': 'AI GNN model finds overvalued/undervalued outcomes automatically.'
+      };
+      document.getElementById('tab-desc').textContent = descs[tab] || '';
     }
 
     function selectOutcome(outcome, btn) {
