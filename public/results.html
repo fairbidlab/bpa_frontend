@@ -73,7 +73,8 @@
       "function claimBalance()",
       "function batchCount() view returns (uint256)",
       "function batches(uint256) view returns (uint256,uint256,uint256,bool)",
-      "function currentBatch(uint256) view returns (uint256)"
+      "function currentBatch(uint256) view returns (uint256)",
+      "function outcomePrice(uint256,string) view returns (uint256)"
     ];
     const POI_ABI = [
       "function getAgentPoI(address) view returns (int256,uint256)",
@@ -149,7 +150,7 @@
         const m = await market.markets(i);
         const name = m[1];
         const status = Number(m[2]);
-        const winner = m[6];
+        const winner = m[4];
         const claimable = await market.claimableBalance(userAddress);
 
         // Get batch data
