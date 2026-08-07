@@ -54,7 +54,7 @@
   <div class="card">
     <h2>📊 Market</h2>
     <label>Market ID</label>
-    <input type="number" id="marketId" value="1" min="1" />
+    <input type="number" id="marketId" value="2" min="1" />
     <label>Select Outcome</label>
     <div id="outcomeButtons" style="margin-top:8px;">
       <button class="outcome-btn active" onclick="selectOutcome('England', this)">England</button>
@@ -95,9 +95,11 @@
       <div style="color:#8892a4;font-size:0.8rem;margin-bottom:8px;">
         Enter ETH amount per outcome. System converts to contracts automatically.
       </div>
-      <div class="pari-row"><span>England</span><input type="number" id="pari-0" placeholder="0.00 ETH" min="0" step="0.001" /></div>
-      <div class="pari-row"><span>Draw</span><input type="number" id="pari-1" placeholder="0.00 ETH" min="0" step="0.001" /></div>
-      <div class="pari-row"><span>Germany</span><input type="number" id="pari-2" placeholder="0.00 ETH" min="0" step="0.001" /></div>
+      <div style="margin-top:8px;margin-bottom:8px;">
+        <span style="color:#8892a4;font-size:0.85rem;">Selected outcome: </span>
+        <span id="poolOutcome" style="color:#c9a84c;font-weight:600;">England</span>
+      </div>
+      <input type="number" id="pari-amount" placeholder="0.00 ETH" min="0" step="0.001" />
       <button class="btn btn-sign" onclick="signParimutuelOrders()">✍️ Deposit + Sign All Bets</button>
     </div>
 
@@ -147,7 +149,7 @@
 
   <script>
     const MEMPOOL_URL = 'http://localhost:5002';
-    const BPA_MARKET = '0xb2f2E49B22F63f6946c0F45f4F030E7730AbEEcb';
+    const BPA_MARKET = '0x6fd2ef4734ec2A582823b1040CF784EF05bBbA2d';
     const CHAIN_ID = 11155111;
     const OUTCOMES = ['England', 'Draw', 'Germany'];
     const MARKET_ABI = [
@@ -178,6 +180,8 @@
       document.querySelectorAll('.outcome-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       selectedOutcome = outcome;
+      const el = document.getElementById('poolOutcome');
+      if (el) el.textContent = outcome;
     }
 
     function selectSide(side, btn) {
@@ -207,7 +211,6 @@
         const bal = await provider.getBalance(userAddress);
         document.getElementById('ethBal').textContent = parseFloat(ethers.formatEther(bal)).toFixed(4);
         log('Connected: ' + userAddress.slice(0,10) + '...', '#22c55e');
-        await loadStats();
       } catch(e) { log('Error: ' + e.message, '#ef4444'); }
     }
 
@@ -215,10 +218,10 @@
       // One transaction - submitOrder with ETH
       log('Submitting order to blockchain...');
       const SUBMIT_ABI = [
-        "function submitOrder(uint256 marketId, string memory outcome, uint256 quantity, uint256 limitPrice) payable"
+        "function submitFixBet(uint256 marketId, string memory outcome, uint256 quantity, uint256 limitPrice) payable"
       ];
       const contract = new ethers.Contract(BPA_MARKET, SUBMIT_ABI, signer);
-      const tx = await contract.submitOrder(
+      const tx = await contract.submitFixBet(
         marketId, outcome, quantity, limitPrice,
         {value: ethers.parseEther(ethAmount)}
       );
@@ -249,72 +252,34 @@
         if (!confirmed) { log('Cancelled', '#8892a4'); return; }
 
         const result = await depositAndSign(marketId, selectedOutcome, quantity, limitPrice, ethAmount);
-        if (result.ok) {
-          log('Order added to mempool!', '#22c55e');
-        } else {
+        if (!result.ok) {
           log('Error: ' + result.message, '#ef4444');
         }
-        await loadStats();
       } catch(e) {
         if (!e.message?.includes('rejected')) log('Error: ' + e.message, '#ef4444');
         else log('Cancelled', '#8892a4');
       }
     }
 
-    async function signParimutuelOrders() {
+        async function signParimutuelOrders() {
       if (!signer) { alert('Connect wallet first'); return; }
       try {
         const marketId = parseInt(document.getElementById('marketId').value);
-        let totalEth = 0;
-        for (let i = 0; i < OUTCOMES.length; i++) {
-          totalEth += parseFloat(document.getElementById('pari-' + i).value || '0');
-        }
-        if (totalEth <= 0) { alert('Enter amounts'); return; }
-
+        const amount = parseFloat(document.getElementById('pari-amount').value || '0');
+        if (amount <= 0) { alert('Enter amount'); return; }
         const confirmed = confirm(
-          'Confirm Parimutuel Bets:\n\n' +
-          OUTCOMES.map((o, i) => {
-            const v = parseFloat(document.getElementById('pari-' + i).value || '0');
-            return v > 0 ? o + ': ' + v + ' ETH' : null;
-          }).filter(Boolean).join('\n') +
-          '\n\nTotal deposit: ' + totalEth.toFixed(4) + ' ETH\n\nWARNING: Orders cannot be cancelled!'
+          'Confirm Pool Bet:\n\n' +
+          'Market: #' + marketId + '\n' +
+          'Outcome: ' + selectedOutcome + '\n' +
+          'Amount: ' + amount + ' ETH\n\n' +
+          'WARNING: Cannot be cancelled!'
         );
         if (!confirmed) { log('Cancelled', '#8892a4'); return; }
-
-        // One deposit for total amount
-        const contract = new ethers.Contract(BPA_MARKET, MARKET_ABI, signer);
-        log('Depositing total ' + totalEth.toFixed(4) + ' ETH...');
-        const tx = await contract.deposit({value: ethers.parseEther(totalEth.toFixed(6))});
+        const contract1 = new ethers.Contract(BPA_MARKET, ["function submitPoolBet(uint256 marketId, string memory outcome) payable"], signer);
+        log('Submitting Pool Bet on ' + selectedOutcome + '...');
+        const tx = await contract1.submitPoolBet(marketId, selectedOutcome, {value: ethers.parseEther(amount.toFixed(6))});
         await tx.wait();
-        log('Deposit confirmed!', '#22c55e');
-
-        // Sign each order separately (free)
-        for (let i = 0; i < OUTCOMES.length; i++) {
-          const amount = parseFloat(document.getElementById('pari-' + i).value || '0');
-          if (amount > 0) {
-            const quantity = Math.round(amount * 1000);
-            const deadline = Math.floor(Date.now() / 1000) + 60 * 24 * 365;
-            const domain = { name: 'BPA Market', version: '1', chainId: CHAIN_ID };
-            const types = { Order: [
-              { name: 'marketId', type: 'uint256' },
-              { name: 'outcome', type: 'string' },
-              { name: 'quantity', type: 'uint256' },
-              { name: 'limitPrice', type: 'uint256' },
-              { name: 'nonce', type: 'uint256' },
-              { name: 'deadline', type: 'uint256' },
-            ]};
-            const value = { marketId, outcome: OUTCOMES[i], quantity, limitPrice: 999, nonce, deadline };
-            log('Sign ' + OUTCOMES[i] + ' (free)...');
-            const signature = await signer.signTypedData(domain, types, value);
-            const order = { marketId, outcome: OUTCOMES[i], quantity, limitPrice: 999, nonce, deadline, signature, signer: userAddress, ethAmount: amount.toFixed(6) };
-            nonce++;
-            document.getElementById('nonceVal').textContent = nonce;
-            const resp = await fetch(MEMPOOL_URL + '/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
-            const result = await resp.json();
-            if (result.ok) log(OUTCOMES[i] + ': signed!', '#22c55e');
-          }
-        }
-        await loadStats();
+        log(selectedOutcome + ': Pool Bet submitted!', '#22c55e');
       } catch(e) {
         if (!e.message?.includes('rejected')) log('Error: ' + e.message, '#ef4444');
         else log('Cancelled', '#8892a4');
@@ -337,37 +302,14 @@
         if (!confirmed) { log('Cancelled', '#8892a4'); return; }
 
         const perOutcome = totalAmount / OUTCOMES.length;
-        // One deposit for total amount
-        const contract = new ethers.Contract(BPA_MARKET, MARKET_ABI, signer);
-        log('Depositing ' + totalAmount + ' ETH...');
-        const tx = await contract.deposit({value: ethers.parseEther(totalAmount.toFixed(6))});
-        await tx.wait();
-        log('Deposit confirmed!', '#22c55e');
-        // Sign each outcome (free)
+        const contract2 = new ethers.Contract(BPA_MARKET, ["function submitPoolBet(uint256 marketId, string memory outcome) payable"], signer);
         for (const outcome of OUTCOMES) {
-          const quantity = Math.round(perOutcome * 1000);
-          const deadline = Math.floor(Date.now() / 1000) + 60 * 24 * 365;
-          const domain = { name: 'BPA Market', version: '1', chainId: CHAIN_ID };
-          const types = { Order: [
-            { name: 'marketId', type: 'uint256' },
-            { name: 'outcome', type: 'string' },
-            { name: 'quantity', type: 'uint256' },
-            { name: 'limitPrice', type: 'uint256' },
-            { name: 'nonce', type: 'uint256' },
-            { name: 'deadline', type: 'uint256' },
-          ]};
-          const value = { marketId, outcome, quantity, limitPrice: 999, nonce, deadline };
-          log('Sign ' + outcome + ' (free)...');
-          const signature = await signer.signTypedData(domain, types, value);
-          const order = { marketId, outcome, quantity, limitPrice: 999, nonce, deadline, signature, signer: userAddress, ethAmount: perOutcome.toFixed(6) };
-          nonce++;
-          document.getElementById('nonceVal').textContent = nonce;
-          const resp = await fetch(MEMPOOL_URL + '/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(order) });
-          const result = await resp.json();
-          if (result.ok) log(outcome + ': signed!', '#22c55e');
+          log('Submitting ' + outcome + '...');
+          const tx = await contract2.submitPoolBet(marketId, outcome, {value: ethers.parseEther(perOutcome.toFixed(6))});
+          await tx.wait();
+          log(outcome + ': submitted!', '#22c55e');
         }
         log('Liquidity provision complete!', '#22c55e');
-        await loadStats();
       } catch(e) {
         if (!e.message?.includes('rejected')) log('Error: ' + e.message, '#ef4444');
         else log('Cancelled', '#8892a4');
@@ -405,8 +347,12 @@
           '\n\nDeposit 0.01 ETH per trade?\nWARNING: Cannot be cancelled!');
         if (confirmed) {
           for (const t of trades) {
-            const result = await depositAndSign(marketId, t.outcome, 1, t.limitPrice, t.ethAmount);
-            if (result.ok) log('AI TRADE: ' + t.outcome, '#a855f7');
+            const contractAI = new ethers.Contract(BPA_MARKET, ["function submitFixBet(uint256 marketId, string memory outcome, uint256 quantity, uint256 limitPrice) payable"], signer);
+            const txAI = await contractAI.submitFixBet(marketId, t.outcome, 1, t.limitPrice, {value: ethers.parseEther(t.ethAmount)});
+            await txAI.wait();
+            await txAI.wait();
+            await txAI.wait();
+            log('AI TRADE: ' + t.outcome, '#a855f7');
           }
         }
       }
@@ -414,40 +360,11 @@
       html += trades.length > 0 ? '<div style="color:#22c55e;margin-top:4px;">' + trades.length + ' trades!</div>' : '<div style="color:#8892a4;">No trades (distortion too small)</div>';
       html += '</div>';
       document.getElementById('agentResult').innerHTML = html;
-      await loadStats();
     }
 
-    async function loadStats() {
-      try {
-        const resp = await fetch(MEMPOOL_URL + '/stats');
-        const stats = await resp.json();
-        let html = '<div style="font-size:0.85rem;">Active: <span class="green">' + stats.active + '</span> | Expired: <span class="red">' + stats.expired + '</span></div>';
-        if (Object.keys(stats.markets).length > 0) {
-          html += '<div style="margin-top:6px;font-size:0.8rem;">';
-          for (const [mid, outcomes] of Object.entries(stats.markets)) {
-            html += '<div>Market #' + mid + ': ';
-            for (const [o, c] of Object.entries(outcomes)) {
-              html += '<span style="color:#c9a84c;margin-right:8px;">' + o + ':' + c + '</span>';
-            }
-            html += '</div>';
-          }
-          html += '</div>';
-        }
-        document.getElementById('mempoolStats').innerHTML = html;
-      } catch(e) {
-        document.getElementById('mempoolStats').innerHTML = '<span class="red">Mempool offline</span>';
-      }
-    }
 
-    function viewOrders() {
-      const marketId = document.getElementById('marketId').value;
-      fetch(MEMPOOL_URL + '/orders?marketId=' + marketId)
-        .then(r => r.json())
-        .then(orders => {
-          const w = window.open('', '_blank');
-          w.document.write('<pre style="background:#0f1117;color:#e2e8f0;padding:20px;">' + JSON.stringify(orders, null, 2) + '</pre>');
-        });
-    }
+
+
 
     loadStats();
     setInterval(loadStats, 10000);
