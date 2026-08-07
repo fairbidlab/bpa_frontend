@@ -188,6 +188,7 @@
         const winnerText = winner ? `Winner: <span class="green">${winner}</span>` : '';
         const claimText = claimable > 0n ? `<span class="green">Claimable: ${parseFloat(ethers.formatEther(claimable)).toFixed(4)} ETH</span>` : '';
 
+        if (!batchInfo) continue;
         html += `<div class="market-item">
           <div style="font-weight:600">${name}</div>
           <div class="label">Market #${i} · ${statusText}</div>
