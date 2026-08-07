@@ -68,7 +68,7 @@
 
     const MARKET_ABI = [
       "function marketCount() view returns (uint256)",
-      "function markets(uint256) view returns (uint256,string,uint8,uint8,uint256,uint256,string,address)",
+      "function markets(uint256) view returns (uint256,string,uint8,uint256,string,address,uint256,bool)",
       "function claimableBalance(address) view returns (uint256)",
       "function claimBalance()",
       "function batchCount() view returns (uint256)",
@@ -165,11 +165,25 @@
                 <span style="color:#c9a84c;">📊 Baron-Lange:</span>
                 <span style="color:#e2e8f0;margin-left:8px;">M* = ${mStar.toFixed(4)}</span>
                 <span style="color:#8892a4;margin-left:8px;">Batch #${Number(batchId)}</span>
-                <div style="margin-top:4px;font-size:0.75rem;">England: ${(1/mStar).toFixed(3)} · Draw: ${(1/mStar).toFixed(3)} · Germany: ${(1/mStar).toFixed(3)}</div>
+                <div id="prices${i}" style="margin-top:4px;font-size:0.75rem;color:#22c55e;"></div>
               </div>`;
             }
           }
         } catch(e) {}
+        // Load Baron-Lange prices from node
+        try {
+          const nr = await fetch('http://localhost:5002/results');
+          const allResults = await nr.json();
+          const marketResult = allResults.filter(r => r.market_id === i).pop();
+          if (marketResult && marketResult.prices) {
+            let ph = '';
+            for (const [o, p] of Object.entries(marketResult.prices)) {
+              ph += '<span style="margin-right:8px;color:#22c55e;">' + o + ': ' + (p*100).toFixed(1) + '%</span>';
+            }
+            const mstar = marketResult.m_star ? 'M*=' + marketResult.m_star.toFixed(2) : '';
+            batchInfo = '<div style="background:#0f1117;padding:8px;margin-top:8px;border-radius:4px;font-size:0.8rem;"><span style="color:#c9a84c;">Baron-Lange: </span><span style="color:#e2e8f0;">' + mstar + '</span><div style="margin-top:4px;">' + ph + '</div></div>';
+          }
+        } catch(fe) {}
         const statusText = status === 0 ? '🟢 Open' : status === 1 ? '🟡 Pending' : '✅ Resolved';
         const winnerText = winner ? `Winner: <span class="green">${winner}</span>` : '';
         const claimText = claimable > 0n ? `<span class="green">Claimable: ${parseFloat(ethers.formatEther(claimable)).toFixed(4)} ETH</span>` : '';
