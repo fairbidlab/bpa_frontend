@@ -234,6 +234,7 @@
       if (!signer) { alert('Connect wallet first'); return; }
       try {
         const marketId = parseInt(document.getElementById('marketId').value);
+      const direction = document.getElementById('agentDirection') ? document.getElementById('agentDirection').value : 'over';
         const quantity = parseInt(document.getElementById('quantity').value);
         const limitPriceVal = parseFloat(document.getElementById('limitPrice').value);
         const limitPrice = Math.round(limitPriceVal * 1000);
@@ -316,50 +317,52 @@
       }
     }
 
-    async function runAIAgent() {
+        async function runAIAgent() {
       if (!signer) { alert('Connect wallet first'); return; }
+      const confirmed = confirm('Analysis fee: 0.0002 ETH\nThis fee is charged regardless of results. Please set a reasonable distortion threshold.\n\nContinue?');
+      if (!confirmed) { return; }
+      try {
+        const feeTx = await signer.sendTransaction({
+          to: '0x6fd2ef4734ec2A582823b1040CF784EF05bBbA2d',
+          value: ethers.parseEther('0.0002')
+        });
+        await feeTx.wait();
+      } catch(e) {
+        if (!e.message?.includes('rejected')) log('Fee error: ' + e.message, '#ef4444');
+        else log('Cancelled', '#8892a4');
+        return;
+      }
       const marketName = document.getElementById('agentMarketName').value;
       const distortion = parseFloat(document.getElementById('agentDistortion').value);
       const marketId = parseInt(document.getElementById('marketId').value);
-
+      const direction = document.getElementById('agentDirection') ? document.getElementById('agentDirection').value : 'any';
+      log('Direction: ' + direction, '#8892a4');
       log('AI Agent analyzing: ' + marketName + '...', '#a855f7');
       document.getElementById('agentResult').innerHTML = '<span style="color:#c9a84c;">Running GNN model...</span>';
       await new Promise(r => setTimeout(r, 1000));
-
       const predictions = { 'England': 0.38, 'Draw': 0.31, 'Germany': 0.31 };
       const bookmaker = { 'England': 0.45, 'Draw': 0.28, 'Germany': 0.27 };
-
       let html = '<div style="font-size:0.8rem;margin-top:8px;">';
       let trades = [];
-
       for (const outcome of OUTCOMES) {
         const q = predictions[outcome];
         const p = bookmaker[outcome];
         const d = Math.abs(q - p);
-        const signal = d >= distortion ? (q > p ? '📈 UNDERVALUED' : '📉 OVERVALUED') : '—';
+        const signal = d >= distortion ? (q > p ? 'UNDERVALUED' : 'OVERVALUED') : '-';
         html += '<div style="margin-bottom:4px;">' + outcome + ': GNN=' + (q*100).toFixed(1) + '% Bookie=' + (p*100).toFixed(1) + '% ' + signal + '</div>';
-        if (d >= distortion) trades.push({ outcome, limitPrice: Math.round(p * 1000), ethAmount: '0.01' });
-      }
-
-      if (trades.length > 0) {
-        const confirmed = confirm('AI Agent found ' + trades.length + ' trade(s):\n\n' +
-          trades.map(t => t.outcome + ' @ ' + (t.limitPrice/1000).toFixed(3)).join('\n') +
-          '\n\nDeposit 0.01 ETH per trade?\nWARNING: Cannot be cancelled!');
-        if (confirmed) {
-          for (const t of trades) {
-            const contractAI = new ethers.Contract(BPA_MARKET, ["function submitFixBet(uint256 marketId, string memory outcome, uint256 quantity, uint256 limitPrice) payable"], signer);
-            const txAI = await contractAI.submitFixBet(marketId, t.outcome, 1, t.limitPrice, {value: ethers.parseEther(t.ethAmount)});
-            await txAI.wait();
-            await txAI.wait();
-            await txAI.wait();
-            log('AI TRADE: ' + t.outcome, '#a855f7');
-          }
+        const isOver = q < p;
+        const isUnder = q > p;
+        if (d >= distortion && (direction === 'any' || (direction === 'over' && isOver) || (direction === 'under' && isUnder))) {
+          trades.push({ outcome, limitPrice: Math.round(p * 1000), ethAmount: '0.01' });
         }
       }
-
-      html += trades.length > 0 ? '<div style="color:#22c55e;margin-top:4px;">' + trades.length + ' trades!</div>' : '<div style="color:#8892a4;">No trades (distortion too small)</div>';
       html += '</div>';
       document.getElementById('agentResult').innerHTML = html;
+      if (trades.length > 0) {
+        log('Analysis complete. ' + trades.length + ' signal(s) found. Use Fix Bet or Pool Bet to place your order.', '#a855f7');
+      } else {
+        log('Analysis complete. No signals found for selected direction and distortion.', '#8892a4');
+      }
     }
 
 
