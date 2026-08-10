@@ -149,7 +149,8 @@
 
   <script>
     const MEMPOOL_URL = 'http://localhost:5002';
-    const BPA_MARKET = '0x6fd2ef4734ec2A582823b1040CF784EF05bBbA2d';
+    const BPA_MARKET = '0x0610AfB957e721FF408af5b2041fDeC7BA7241fe';
+    const POI_NFT = '0x1C4D2DFAEd37390026A21054d8081caCA078e34b';
     const CHAIN_ID = 11155111;
     const OUTCOMES = ['England', 'Draw', 'Germany'];
     const MARKET_ABI = [
@@ -303,10 +304,10 @@
         if (!confirmed) { log('Cancelled', '#8892a4'); return; }
 
         const perOutcome = totalAmount / OUTCOMES.length;
-        const contract2 = new ethers.Contract(BPA_MARKET, ["function submitPoolBet(uint256 marketId, string memory outcome) payable"], signer);
+        const contract2 = new ethers.Contract(BPA_MARKET, ["function submitLiquidity(uint256 marketId, string memory outcome) payable"], signer);
         for (const outcome of OUTCOMES) {
           log('Submitting ' + outcome + '...');
-          const tx = await contract2.submitPoolBet(marketId, outcome, {value: ethers.parseEther(perOutcome.toFixed(6))});
+          const tx = await contract2.submitLiquidity(marketId, outcome, {value: ethers.parseEther(perOutcome.toFixed(6))});
           await tx.wait();
           log(outcome + ': submitted!', '#22c55e');
         }
@@ -323,7 +324,7 @@
       if (!confirmed) { return; }
       try {
         const feeTx = await signer.sendTransaction({
-          to: '0x6fd2ef4734ec2A582823b1040CF784EF05bBbA2d',
+          to: '0x0610AfB957e721FF408af5b2041fDeC7BA7241fe',
           value: ethers.parseEther('0.0002')
         });
         await feeTx.wait();
