@@ -46,6 +46,12 @@
         <button class="btn btn-connect" id="claimBtn" onclick="claimAll()" style="display:none;margin-top:8px;">Claim</button>
       </div>
     </div>
+    <div class="card" id="mintCard" style="display:none">
+      <h2>🎫 Get PoI NFT</h2>
+      <div style="color:#8892a4;font-size:0.85rem;margin-bottom:8px;">Mint your Soulbound Token to start building your Proof of Intelligence score.</div>
+      <div style="color:#c9a84c;font-size:0.8rem;margin-bottom:12px;">Note: If you want to use your PoI as a credential, save your wallet address.</div>
+      <button class="btn btn-connect" onclick="mintPoiNFT()">🎫 Mint PoI NFT (0.001 ETH)</button>
+    </div>
 
     <div class="card" id="poiCard">
       <h2>🏆 My PoI Score</h2>
@@ -68,6 +74,7 @@
 
   <script>
     const BPA_MARKET = '0x6fd2ef4734ec2A582823b1040CF784EF05bBbA2d';
+    const POI_NFT = '0x1C4D2DFAEd37390026A21054d8081caCA078e34b';
     const AGENT_POI = '0x6f9bf6E41a0Bce75C2563740495eD43d7aD06251';
     const DISPUTE_ORACLE = '0x9d57D9B27Ed51C3BA843233224C4A469beaebb68';
 
@@ -109,7 +116,38 @@
     async function loadAll() {
       await loadBalance();
       await loadPoI();
+      await checkPoiNFT();
       await loadMarkets();
+    }
+    const POI_NFT_ABI = [
+      "function hasNFT(address) view returns (bool)",
+      "function mint() payable returns (uint256)"
+    ];
+
+    async function checkPoiNFT() {
+      try {
+        const poi = new ethers.Contract(POI_NFT, POI_NFT_ABI, provider);
+        const has = await poi.hasNFT(userAddress);
+        if (has) {
+          document.getElementById('mintCard').style.display = 'none';
+          document.getElementById('poiCard').style.display = 'block';
+        } else {
+          document.getElementById('mintCard').style.display = 'block';
+          document.getElementById('poiCard').style.display = 'none';
+        }
+      } catch(e) {}
+    }
+
+    async function mintPoiNFT() {
+      try {
+        const poi = new ethers.Contract(POI_NFT, POI_NFT_ABI, signer);
+        const tx = await poi.mint({value: ethers.parseEther('0.001')});
+        await tx.wait();
+        alert('PoI NFT minted successfully!');
+        await checkPoiNFT();
+      } catch(e) {
+        if (!e.message?.includes('rejected')) alert('Error: ' + e.message);
+      }
     }
 
     async function loadBalance() {
