@@ -54,7 +54,7 @@
   <div class="card">
     <h2>📊 Market</h2>
     <label>Market ID</label>
-    <input type="number" id="marketId" value="2" min="1" />
+    <input type="number" id="marketId" value="1" min="1" />
     <label>Select Outcome</label>
     <div id="outcomeButtons" style="margin-top:8px;">
       <button class="outcome-btn active" onclick="selectOutcome('England', this)">England</button>
@@ -149,7 +149,7 @@
 
   <script>
     const MEMPOOL_URL = 'http://localhost:5002';
-    const BPA_MARKET = '0x0610AfB957e721FF408af5b2041fDeC7BA7241fe';
+    const BPA_MARKET = '0x22a24fAb0BE248726003F366B45f1Fc1B404A489';
     const POI_NFT = '0x1C4D2DFAEd37390026A21054d8081caCA078e34b';
     const CHAIN_ID = 11155111;
     const OUTCOMES = ['England', 'Draw', 'Germany'];
@@ -303,11 +303,30 @@
         );
         if (!confirmed) { log('Cancelled', '#8892a4'); return; }
 
-        const perOutcome = totalAmount / OUTCOMES.length;
+        // Get prices from node for proportional split
+        let amounts = {};
+        try {
+          const nr = await fetch('http://localhost:5002/results');
+          const allResults = await nr.json();
+          const marketResult = allResults.filter(r => r.market_id === marketId).pop();
+          if (marketResult && marketResult.prices) {
+            const prices = marketResult.prices;
+            const totalPrice = Object.values(prices).reduce((a, b) => a + b, 0);
+            for (const outcome of OUTCOMES) {
+              const p = prices[outcome] || (1 / OUTCOMES.length);
+              amounts[outcome] = totalAmount * (p / totalPrice);
+            }
+          } else {
+            for (const outcome of OUTCOMES) amounts[outcome] = totalAmount / OUTCOMES.length;
+          }
+        } catch(e) {
+          for (const outcome of OUTCOMES) amounts[outcome] = totalAmount / OUTCOMES.length;
+        }
         const contract2 = new ethers.Contract(BPA_MARKET, ["function submitLiquidity(uint256 marketId, string memory outcome) payable"], signer);
         for (const outcome of OUTCOMES) {
-          log('Submitting ' + outcome + '...');
-          const tx = await contract2.submitLiquidity(marketId, outcome, {value: ethers.parseEther(perOutcome.toFixed(6))});
+          const amt = amounts[outcome];
+          log('Submitting ' + outcome + ': ' + amt.toFixed(4) + ' ETH...');
+          const tx = await contract2.submitLiquidity(marketId, outcome, {value: ethers.parseEther(amt.toFixed(6))});
           await tx.wait();
           log(outcome + ': submitted!', '#22c55e');
         }
@@ -324,7 +343,7 @@
       if (!confirmed) { return; }
       try {
         const feeTx = await signer.sendTransaction({
-          to: '0x0610AfB957e721FF408af5b2041fDeC7BA7241fe',
+          to: '0x22a24fAb0BE248726003F366B45f1Fc1B404A489',
           value: ethers.parseEther('0.0002')
         });
         await feeTx.wait();
