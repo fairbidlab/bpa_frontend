@@ -173,31 +173,19 @@
     }
 
     async function loadPoI() {
-      const poi = new ethers.Contract(AGENT_POI, POI_ABI, provider);
-      const total = await poi.getAgentPoI(userAddress);
-      const totalPoi = parseFloat(ethers.formatEther(total[0]));
-      const count = Number(total[1]);
-      document.getElementById('poiTotal').textContent = totalPoi.toFixed(4);
-
-      const categories = ['football','finance','politics','weather','rare'];
-      const ids = ['poiSport','poiFinance','poiPolitics','poiWeather','poiRare'];
-      for (let i = 0; i < categories.length; i++) {
-        const cat = await poi.getCategoryPoI(userAddress, categories[i]);
-        const val = parseFloat(ethers.formatEther(cat[0]));
-        const el = document.getElementById(ids[i]);
-        el.textContent = val.toFixed(4);
-        el.className = val >= 0 ? 'green' : 'red';
-      }
-
-      // Level
-      const avg = count > 0 ? totalPoi / count : 0;
-      let level = '— Unranked';
-      if (count >= 200 && avg > 0.40) level = '🔮 Oracle';
-      else if (count >= 100 && avg > 0.25) level = '💎 Platinum';
-      else if (count >= 50 && avg > 0.15) level = '🥇 Gold';
-      else if (count >= 20 && avg > 0.05) level = '🥈 Silver';
-      else if (count >= 10 && avg > 0.00) level = '🥉 Bronze';
-      document.getElementById('poiLevel').textContent = level;
+      try {
+        const poi = new ethers.Contract(POI_NFT, [
+          "function getPoI(address) view returns (uint256,bool,int256,int256,int256,int256,int256,int256,uint256,uint256,uint256,uint256,uint256,uint256)"
+        ], provider);
+        const data = await poi.getPoI(userAddress);
+        document.getElementById('poiTotal').textContent = (Number(data[2])/1e6).toFixed(4);
+        document.getElementById('poiSport').textContent = (Number(data[3])/1e6).toFixed(4);
+        document.getElementById('poiFinance').textContent = (Number(data[4])/1e6).toFixed(4);
+        document.getElementById('poiPolitics').textContent = (Number(data[5])/1e6).toFixed(4);
+        document.getElementById('poiWeather').textContent = (Number(data[6])/1e6).toFixed(4);
+        document.getElementById('poiRare').textContent = (Number(data[7])/1e6).toFixed(4);
+        document.getElementById('poiLevel').textContent = 'W-index: ' + (Math.sqrt(0.05) * Number(data[2])/1e6).toFixed(4);
+      } catch(e) {}
     }
 
     async function loadMarkets() {
