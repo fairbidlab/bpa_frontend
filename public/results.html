@@ -55,6 +55,7 @@
 
     <div class="card" id="poiCard">
       <h2>🏆 My PoI Score</h2>
+      <div style="color:#8892a4;font-size:0.75rem;margin-bottom:8px;"><b style="color:#c9a84c;">PoI</b> = Proof of Intelligence (score accumulated for correct predictions)<br><b style="color:#c9a84c;">PoC</b> = Proof of Conviction = √stake × PoI (conviction backed by stake)</div>
       <div class="value" id="poiTotal">Loading...</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:8px;font-size:0.8rem">
         <span class="label">⚽ Sport:</span><span id="poiSport" class="green">0</span>
@@ -184,7 +185,7 @@
         document.getElementById('poiPolitics').textContent = (Number(data[5])/1e6).toFixed(4);
         document.getElementById('poiWeather').textContent = (Number(data[6])/1e6).toFixed(4);
         document.getElementById('poiRare').textContent = (Number(data[7])/1e6).toFixed(4);
-        document.getElementById('poiLevel').textContent = 'W-index: ' + (Math.sqrt(0.05) * Number(data[2])/1e6).toFixed(4);
+        document.getElementById('poiLevel').textContent = 'PoC: ' + (Math.sqrt(0.05) * Number(data[2])/1e6).toFixed(4);
       } catch(e) {}
     }
 
