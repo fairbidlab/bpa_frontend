@@ -149,7 +149,7 @@
 
   <script>
     const MEMPOOL_URL = 'http://localhost:5002';
-    const BPA_MARKET = '0x22a24fAb0BE248726003F366B45f1Fc1B404A489';
+    const BPA_MARKET = '0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0';
     const POI_NFT = '0x1C4D2DFAEd37390026A21054d8081caCA078e34b';
     const CHAIN_ID = 11155111;
     const OUTCOMES = ['England', 'Draw', 'Germany'];
@@ -202,7 +202,7 @@
     }
 
     async function connect() {
-      if (!window.ethereum) { alert('Please install MetaMask'); return; }
+      if (!window.ethereum) { alert('Please install a Web3 wallet (MetaMask, Rabby, Coinbase Wallet, etc.)'); return; }
       try {
         provider = new ethers.BrowserProvider(window.ethereum);
         signer = await provider.getSigner();
@@ -216,6 +216,11 @@
     }
 
     async function depositAndSign(marketId, outcome, quantity, limitPrice, ethAmount) {
+      // Minimum bet $1 check (approximately 0.0003 ETH)
+      if (ethAmount < 0.0003) {
+        log('Minimum bet is $1. Please increase your bet.', '#ef4444');
+        return;
+      }
       // One transaction - submitOrder with ETH
       log('Submitting order to blockchain...');
       const SUBMIT_ABI = [
@@ -343,7 +348,7 @@
       if (!confirmed) { return; }
       try {
         const feeTx = await signer.sendTransaction({
-          to: '0x22a24fAb0BE248726003F366B45f1Fc1B404A489',
+          to: '0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0',
           value: ethers.parseEther('0.0002')
         });
         await feeTx.wait();
