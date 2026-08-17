@@ -45,6 +45,10 @@
         <div class="value green" id="claimableAmt">0 ETH</div>
         <button class="btn btn-connect" id="claimBtn" onclick="claimAll()" style="display:none;margin-top:8px;">Claim</button>
       </div>
+      <div style="margin-top:8px">
+        <div class="label">Treasury Balance</div>
+        <div class="value" id="treasuryBalance">â€"</div>
+      </div>
     </div>
     <div class="card" id="mintCard" style="display:none">
       <h2>🎫 Get PoI NFT</h2>
@@ -74,7 +78,7 @@
   </div>
 
   <script>
-    const BPA_MARKET = '0x22a24fAb0BE248726003F366B45f1Fc1B404A489';
+    const BPA_MARKET = '0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0';
     const POI_NFT = '0x09Ff9373261304C4EFca0Db72752AdAf3129a0c6';
     const AGENT_POI = '0x6f9bf6E41a0Bce75C2563740495eD43d7aD06251';
     const DISPUTE_ORACLE = '0x9d57D9B27Ed51C3BA843233224C4A469beaebb68';
@@ -114,6 +118,25 @@
       } catch(e) { alert('Connection failed: ' + e.message); }
     }
 
+    async function claimAll() {
+      try {
+        const market = new ethers.Contract(BPA_MARKET, MARKET_ABI, signer);
+        const tx = await market.claimBalance();
+        await tx.wait();
+        alert('Claimed successfully!');
+        await loadBalance();
+      } catch(e) { alert('Error: ' + e.message); }
+    }
+
+    async function loadBalance() {
+      try {
+        const bal = await provider.getBalance(userAddress);
+        document.getElementById('ethBalance').textContent = parseFloat(ethers.formatEther(bal)).toFixed(4) + ' ETH';
+        const market = new ethers.Contract(BPA_MARKET, MARKET_ABI, provider);
+        const treasury = await provider.getBalance(BPA_MARKET);
+        document.getElementById('treasuryBalance').textContent = parseFloat(ethers.formatEther(treasury)).toFixed(4) + ' ETH';
+      } catch(e) {}
+    }
     async function loadAll() {
       await loadBalance();
       await loadPoI();
@@ -161,6 +184,8 @@
           document.getElementById('claimableAmt').textContent = parseFloat(ethers.formatEther(claimable)).toFixed(4) + ' ETH';
           document.getElementById('claimBtn').style.display = 'inline-block';
         }
+        const treasury = await provider.getBalance(BPA_MARKET);
+        document.getElementById('treasuryBalance').textContent = parseFloat(ethers.formatEther(treasury)).toFixed(4) + ' ETH';
       } catch(e) {}
     }
     async function claimAll() {
