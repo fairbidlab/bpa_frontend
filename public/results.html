@@ -270,7 +270,7 @@
           ${claimText ? `<div style="margin-top:4px">${claimText}</div>` : ''}
           ${batchInfo}
           <div style="margin-top:8px">
-            ${status === 2 ? `<button class="btn btn-dispute" onclick="fileDispute(${i})">⚠️ Dispute</button>` : ''}
+            ${status === 1 ? `<button class="btn btn-dispute" onclick="fileDispute(${i})">⚠️ Dispute</button>` : ''}
             <button class="btn btn-uphold" onclick="castVote(${i}, true)">✓ Vote Uphold</button>
             <button class="btn btn-reject" onclick="castVote(${i}, false)">✗ Vote Reject</button>
             ${claimable > 0n ? `<button class="btn btn-connect" onclick="claimBalance()">💰 Claim</button>` : ''}
