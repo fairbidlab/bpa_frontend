@@ -165,7 +165,7 @@
     async function mintPoiNFT() {
       try {
         const poi = new ethers.Contract(POI_NFT, POI_NFT_ABI, signer);
-        const tx = await poi.mint(ethers.ZeroAddress, {value: ethers.parseEther('0.002')});
+        const tx = await poi.mint(ethers.ZeroAddress, {value: ethers.parseEther('0.01')});
         await tx.wait();
         alert('PoI NFT minted successfully!');
         await checkPoiNFT();
@@ -283,7 +283,7 @@
     async function fileDispute(marketId) {
       try {
         const dispute = new ethers.Contract(DISPUTE_ORACLE, DISPUTE_ABI, signer);
-        await dispute.fileDispute(marketId, {value: ethers.parseEther('0.001')});
+        await dispute.fileDispute(marketId, {value: ethers.parseEther('0.01')});
         alert('Dispute filed!');
       } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
     }
