@@ -81,7 +81,7 @@
     const BPA_MARKET = '0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0';
     const POI_NFT = '0x6f7a6f2462b74455D920BBC9A1C916f65F90EE50';
     const AGENT_POI = '0x6f9bf6E41a0Bce75C2563740495eD43d7aD06251';
-    const DISPUTE_ORACLE = '0x735d85c1Abc8f04C52aE062E991c111554909218';
+    const DISPUTE_ORACLE = '0x4ce64b5818c4FFb581184d2f43FbBF92d152AE05';
 
     const MARKET_ABI = [
       "function marketCount() view returns (uint256)",
@@ -283,7 +283,7 @@
     async function fileDispute(marketId) {
       try {
         const dispute = new ethers.Contract(DISPUTE_ORACLE, DISPUTE_ABI, signer);
-        await dispute.fileDispute(marketId, {value: ethers.parseEther('0.01')});
+        await dispute.fileDispute(marketId, {value: ethers.parseEther('0.001')});
         alert('Dispute filed!');
       } catch(e) { if (!e.message?.includes('rejected')) alert('Error: ' + (e.reason || e.message)); }
     }
