@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA — Event Calendar</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; background: #0f1117; color: #e2e8f0; padding: 20px; max-width: 700px; margin: 0 auto; }
+    h1 { color: #5b8dee; margin-bottom: 4px; }
+    .subtitle { color: #8892a4; font-size: 0.85rem; margin-bottom: 20px; }
+    .card { background: #1a1d2e; border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid #2e3347; }
+    .card h2 { color: #c9a84c; margin-bottom: 12px; font-size: 1rem; }
+    label { color: #8892a4; font-size: 0.85rem; display: block; margin-bottom: 4px; margin-top: 10px; }
+    input, select, textarea { width: 100%; padding: 8px; background: #0f1117; border: 1px solid #2e3347; color: #e2e8f0; border-radius: 4px; font-size: 0.9rem; }
+    textarea { resize: vertical; min-height: 80px; }
+    .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-right: 8px; margin-top: 8px; }
+    .btn-connect { background: #5b8dee; color: white; }
+    .btn-submit { background: #c9a84c; color: #000; font-weight: 600; }
+    .btn-gray { background: #374151; color: #e2e8f0; }
+    .address { font-family: monospace; font-size: 0.8rem; color: #5b8dee; }
+    .log { background: #0f1117; border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 0.8rem; color: #8892a4; max-height: 150px; overflow-y: auto; }
+    .green { color: #22c55e; }
+    .red { color: #ef4444; }
+    .event-card { background: #0f1117; border: 1px solid #2e3347; border-radius: 6px; padding: 12px; margin-bottom: 8px; }
+    .event-card h3 { color: #e2e8f0; font-size: 0.9rem; margin-bottom: 4px; }
+    .event-card .meta { color: #8892a4; font-size: 0.78rem; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; margin-left: 6px; }
+    .badge-pending { background: rgba(201,168,76,0.15); color: #c9a84c; border: 1px solid rgba(201,168,76,0.3); }
+    .badge-approved { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge-rejected { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .nav { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .nav a { color: #8892a4; text-decoration: none; font-size: 0.85rem; padding: 4px 12px; border: 1px solid #2e3347; border-radius: 4px; }
+    .nav a:hover, .nav a.active { color: #5b8dee; border-color: #5b8dee; background: rgba(91,141,238,0.1); }
+    .info-box { background: rgba(91,141,238,0.08); border: 1px solid rgba(91,141,238,0.2); border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 0.82rem; color: #8892a4; }
+    .info-box strong { color: #5b8dee; }
+    .outcome-tag { background: rgba(91,141,238,0.1); border: 1px solid rgba(91,141,238,0.3); color: #5b8dee; padding: 3px 10px; border-radius: 4px; font-size: 0.82rem; cursor: pointer; display: inline-block; margin: 3px; }
+    #outcomeTags { min-height: 30px; margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <h1>📅 Event Calendar</h1>
+  <p class="subtitle">Propose events for prediction markets. AI agent reviews and approves.</p>
+  <div class="nav">
+    <a href="order.html">📋 Orders</a>
+    <a href="results.html">🏆 Results</a>
+    <a href="calendar.html" class="active">📅 Calendar</a>
+    <a href="help.html">❓ Help</a>
+  </div>
+  <div class="card">
+    <h2>👤 Wallet</h2>
+    <button class="btn btn-connect" onclick="connect()">🔗 Connect Wallet</button>
+    <div id="walletInfo" style="display:none; margin-top:8px;">
+      <div class="address" id="walletAddr"></div>
+      <div style="color:#8892a4;font-size:0.8rem;margin-top:4px;">Balance: <span id="ethBal" class="green">—</span> ETH</div>
+    </div>
+  </div>
+  <div class="card">
+    <h2>➕ Propose New Event</h2>
+    <div class="info-box">
+      <strong>How it works:</strong> You propose an event → AI blocking agent reviews it → If approved, market is created automatically. You earn ~$0.05 creator fee after the event resolves (if at least one batch occurred).
+    </div>
+    <label>Event Title</label>
+    <input type="text" id="eventTitle" placeholder="e.g. EPL: Arsenal vs Chelsea, 2026-09-15" />
+    <label>Category</label>
+    <select id="eventCategory">
+      <option value="sport">⚽ Sport</option>
+      <option value="finance">📈 Finance</option>
+      <option value="politics">🏛️ Politics</option>
+      <option value="weather">🌤️ Weather</option>
+      <option value="rare">⭐ Rare Event</option>
+    </select>
+    <label>Outcomes (press Enter to add each outcome)</label>
+    <input type="text" id="outcomeInput" placeholder="e.g. Arsenal" onkeydown="addOutcome(event)" />
+    <div id="outcomeTags"></div>
+    <div style="color:#8892a4;font-size:0.75rem;margin-top:4px;">Click on an outcome to remove it. Minimum 2 outcomes required.</div>
+    <label>Resolution Date & Time</label>
+    <input type="datetime-local" id="eventDate" />
+    <label>Description (optional)</label>
+    <textarea id="eventDesc" placeholder="Additional details about the event..."></textarea>
+    <br>
+    <button class="btn btn-submit" onclick="proposeEvent()">📤 Submit Proposal</button>
+    <div class="log" id="proposeLog"></div>
+  </div>
+  <div class="card">
+    <h2>📋 Proposed Events</h2>
+    <button class="btn btn-gray" onclick="loadEvents()" style="margin-bottom:12px;">🔄 Refresh</button>
+    <div id="eventsList"><div style="color:#8892a4;font-size:0.85rem;">Click Refresh to load events.</div></div>
+  </div>
+  <script>
+    const CALENDAR_ADDRESS = "0x667637489b064fE2f9495429afA5442843886225";
+    const CALENDAR_ABI = [
+      "function proposeEvent(string memory title, string memory category, string[] memory outcomes, uint256 resolutionTime, string memory description) external returns (uint256)",
+      "function getEvent(uint256 eventId) external view returns (uint256 id, string memory title, string memory category, string[] memory outcomes, uint256 resolutionTime, string memory description, address proposer, uint8 status, uint256 createdAt)",
+      "function eventCount() external view returns (uint256)"
+    ];
+    const RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/dGJhIAT-IAiPWg8s23bd1";
+    let provider, signer;
+    let outcomes = [];
+    function log(msg, color="#8892a4") {
+      const el = document.getElementById("proposeLog");
+      el.innerHTML += "<div style=\"color:"+color+"\">"+new Date().toLocaleTimeString()+" — "+msg+"</div>";
+      el.scrollTop = el.scrollHeight;
+    }
+    async function connect() {
+      try {
+        if (!window.ethereum) { alert("Web3 wallet not found. Install MetaMask or similar."); return; }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        const addr = await signer.getAddress();
+        const bal = await provider.getBalance(addr);
+        document.getElementById("walletAddr").textContent = addr;
+        document.getElementById("ethBal").textContent = parseFloat(ethers.formatEther(bal)).toFixed(4);
+        document.getElementById("walletInfo").style.display = "block";
+        log("Connected: " + addr, "#22c55e");
+        loadEvents();
+      } catch(e) { log("Error: " + e.message, "#ef4444"); }
+    }
+    function addOutcome(event) {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      const val = document.getElementById("outcomeInput").value.trim();
+      if (!val || outcomes.includes(val)) return;
+      outcomes.push(val);
+      renderOutcomes();
+      document.getElementById("outcomeInput").value = "";
+    }
+    function renderOutcomes() {
+      document.getElementById("outcomeTags").innerHTML = outcomes.map((o,i) =>
+        "<span class=\"outcome-tag\" onclick=\"removeOutcome("+i+")\" title=\"Click to remove\">"+o+" ✕</span>"
+      ).join("");
+    }
+    function removeOutcome(idx) { outcomes.splice(idx,1); renderOutcomes(); }
+    async function proposeEvent() {
+      if (!signer) { alert("Connect wallet first"); return; }
+      const title = document.getElementById("eventTitle").value.trim();
+      const category = document.getElementById("eventCategory").value;
+      const dateVal = document.getElementById("eventDate").value;
+      const desc = document.getElementById("eventDesc").value.trim();
+      if (!title) { alert("Enter event title"); return; }
+      if (outcomes.length < 2) { alert("Add at least 2 outcomes"); return; }
+      if (!dateVal) { alert("Select resolution date"); return; }
+      const resolutionTime = Math.floor(new Date(dateVal).getTime() / 1000);
+      if (resolutionTime <= Math.floor(Date.now()/1000)) { alert("Resolution date must be in the future"); return; }
+      try {
+        log("Proposing: " + title + "...");
+        const contract = new ethers.Contract(CALENDAR_ADDRESS, CALENDAR_ABI, signer);
+        const tx = await contract.proposeEvent(title, category, outcomes, resolutionTime, desc);
+        log("Tx sent: " + tx.hash, "#c9a84c");
+        await tx.wait();
+        log("Event proposed! AI agent will review it.", "#22c55e");
+        document.getElementById("eventTitle").value = "";
+        document.getElementById("eventDesc").value = "";
+        document.getElementById("eventDate").value = "";
+        outcomes = []; renderOutcomes();
+        loadEvents();
+      } catch(e) { log("Error: " + (e.reason||e.message), "#ef4444"); }
+    }
+    async function loadEvents() {
+      try {
+        const prov = provider || new ethers.JsonRpcProvider(RPC_URL);
+        const contract = new ethers.Contract(CALENDAR_ADDRESS, CALENDAR_ABI, prov);
+        const count = await contract.eventCount();
+        const container = document.getElementById("eventsList");
+        if (count == 0) { container.innerHTML = "<div style=\"color:#8892a4\">No events yet. Be the first!</div>"; return; }
+        const statusMap = {0:["Pending","badge-pending"],1:["Approved","badge-approved"],2:["Rejected","badge-rejected"]};
+        let html = "";
+        const start = Math.max(1, Number(count)-20);
+        for (let i=Number(count); i>=start; i--) {
+          try {
+            const ev = await contract.getEvent(i);
+            const [st, sc] = statusMap[ev.status]||["Unknown","badge-pending"];
+            const date = new Date(Number(ev.resolutionTime)*1000).toLocaleString();
+            const addr = ev.proposer.slice(0,6)+"..."+ev.proposer.slice(-4);
+            html += "<div class=\"event-card\"><h3>"+ev.title+" <span class=\"badge "+sc+"\">"+st+"</span></h3><div class=\"meta\">📁 "+ev.category+" | 🎯 "+ev.outcomes.join(", ")+" | 📅 "+date+" | 👤 "+addr+"</div>"+(ev.description?"<div style=\"color:#8892a4;font-size:0.8rem;margin-top:4px;\">"+ev.description+"</div>":"")+"</div>";
+          } catch(e) {}
+        }
+        container.innerHTML = html || "<div style=\"color:#8892a4\">No events found.</div>";
+      } catch(e) { document.getElementById("eventsList").innerHTML = "<div style=\"color:#ef4444\">Error: "+e.message+"</div>"; }
+    }
+    window.addEventListener("load", loadEvents);
+  </script>
+</body>
+</html>
