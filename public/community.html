@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA — Community</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; background: #0f1117; color: #e2e8f0; padding: 0; }
+    .nav-bar { background: #1a1d2e; border-bottom: 1px solid #2e3347; padding: 8px 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-bar a { color: #8892a4; text-decoration: none; font-size: 0.85rem; padding: 4px 12px; border: 1px solid #2e3347; border-radius: 4px; }
+    .nav-bar a:hover, .nav-bar a.active { color: #5b8dee; border-color: #5b8dee; background: rgba(91,141,238,0.1); }
+    .container { max-width: 700px; margin: 0 auto; padding: 40px 24px; }
+    h1 { color: #5b8dee; margin-bottom: 8px; }
+    .subtitle { color: #8892a4; font-size: 0.9rem; margin-bottom: 32px; }
+    .card { background: #1a1d2e; border: 1px solid #2e3347; border-radius: 10px; padding: 24px; margin-bottom: 16px; }
+    .card h2 { color: #c9a84c; margin-bottom: 10px; font-size: 1rem; }
+    .card p { color: #8892a4; font-size: 0.9rem; line-height: 1.6; margin-bottom: 14px; }
+    .btn { display: inline-block; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; font-weight: 600; margin-right: 8px; margin-top: 8px; }
+    .btn-green { background: #22c55e; color: #000; }
+    .btn-blue { background: #5b8dee; color: #fff; }
+    .btn-gray { background: #374151; color: #e2e8f0; }
+    .info { background: rgba(91,141,238,0.08); border: 1px solid rgba(91,141,238,0.2); border-radius: 6px; padding: 12px 16px; font-size: 0.82rem; color: #8892a4; margin-bottom: 16px; }
+    .info strong { color: #5b8dee; }
+  </style>
+</head>
+<body>
+  <div class="nav-bar">
+    <a href="help.html">📖 Guide</a>
+    <a href="order.html">📋 Orders</a>
+    <a href="results.html">🏆 Results</a>
+    <a href="calendar.html">📅 Calendar</a>
+    <a href="community.html" class="active">💬 Community</a>
+  </div>
+  <div class="container">
+    <h1>💬 Community</h1>
+    <p class="subtitle">Ask questions, share ideas, report bugs. All discussions happen on GitHub — no personal data required.</p>
+
+    <div class="info">
+      <strong>How it works:</strong> You need a GitHub account to post. GitHub accounts can be created anonymously with a temporary email. Your question is public — anyone in the community can answer.
+    </div>
+
+    <div class="card">
+      <h2>❓ Ask a Question</h2>
+      <p>Something unclear? Can't figure out how something works? Ask the community — experienced participants with high PoC will help.</p>
+      <a href="https://github.com/fairbidlab/bpa/discussions/new?category=q-a" target="_blank" class="btn btn-green">Ask a Question on GitHub</a>
+    </div>
+
+    <div class="card">
+      <h2>💡 Share an Idea</h2>
+      <p>Have a suggestion to improve the platform? New market category? Better algorithm? Share it — the best ideas get implemented.</p>
+      <a href="https://github.com/fairbidlab/bpa/discussions/new?category=ideas" target="_blank" class="btn btn-blue">Share an Idea</a>
+    </div>
+
+    <div class="card">
+      <h2>🐛 Report a Bug</h2>
+      <p>Found something that doesn't work correctly? Report it. Be as specific as possible — what happened, what you expected, your wallet address (optional).</p>
+      <a href="https://github.com/fairbidlab/bpa/issues/new" target="_blank" class="btn btn-gray">Report a Bug</a>
+    </div>
+
+    <div class="card">
+      <h2>📋 View All Discussions</h2>
+      <p>Browse existing questions and answers. Your question may already be answered.</p>
+      <a href="https://github.com/fairbidlab/bpa/discussions" target="_blank" class="btn btn-gray">Browse Discussions</a>
+    </div>
+  </div>
+</body>
+</html>
