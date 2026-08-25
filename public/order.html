@@ -95,6 +95,9 @@
       <div style="color:#8892a4;font-size:0.8rem;margin-bottom:8px;">
         Enter ETH amount per outcome. System converts to contracts automatically.
       </div>
+      <div style="color:#ef4444;font-size:0.8rem;margin-bottom:8px;background:rgba(239,68,68,0.08);padding:8px;border-radius:4px;border-left:3px solid #ef4444;">
+        ⚠️ Maximum Pool Bet: equivalent of $5 per outcome. Large bets are reserved for Liquidity Providers only.
+      </div>
       <div style="margin-top:8px;margin-bottom:8px;">
         <span style="color:#8892a4;font-size:0.85rem;">Selected outcome: </span>
         <span id="poolOutcome" style="color:#c9a84c;font-weight:600;">England</span>
@@ -274,6 +277,10 @@
         const marketId = parseInt(document.getElementById('marketId').value);
         const amount = parseFloat(document.getElementById('pari-amount').value || '0');
         if (amount <= 0) { alert('Enter amount'); return; }
+        const MAX_POOL_BET_USD = 5;
+        const ethPrice = 3000; // approximate ETH price in USD
+        const maxEth = MAX_POOL_BET_USD / ethPrice;
+        if (amount > maxEth) { alert('Maximum Pool Bet is $5 equivalent (' + maxEth.toFixed(6) + ' ETH). Large bets are reserved for Liquidity Providers only.'); return; }
         const confirmed = confirm(
           'Confirm Pool Bet:\n\n' +
           'Market: #' + marketId + '\n' +
