@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BPA Web4 — Справочное руководство</title>
+  <title>PoI Web4 — Справочное руководство</title>
   <style>
     :root { --bg:#0f1117;--surface:#1a1d2e;--border:#2e3347;--accent:#5b8dee;--gold:#c9a84c;--green:#22c55e;--text:#e2e8f0;--muted:#8892a4;--red:#ef4444; }
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -44,8 +44,6 @@
     .alert strong{color:var(--gold);}
     .alert-red{background:rgba(239,68,68,0.08);border-left:3px solid var(--red);padding:10px 14px;border-radius:0 6px 6px 0;margin:12px 0;font-size:0.85rem;color:var(--muted);}
     .alert-red strong{color:var(--red);}
-    .alert-green{background:rgba(34,197,94,0.08);border-left:3px solid var(--green);padding:10px 14px;border-radius:0 6px 6px 0;margin:12px 0;font-size:0.85rem;color:var(--muted);}
-    .alert-green strong{color:var(--green);}
     .agent-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
     @media(max-width:600px){.agent-grid{grid-template-columns:1fr;}.hero{padding:36px 16px 28px;}}
     .adv-list{list-style:none;padding:0;margin-top:10px;}
@@ -59,7 +57,6 @@
     .code-block{background:rgba(0,0,0,0.3);border-radius:6px;padding:10px;margin-top:8px;font-family:'Courier New',monospace;font-size:0.78rem;color:var(--accent);}
     .back-top{display:block;text-align:center;color:var(--muted);font-size:0.78rem;text-decoration:none;margin-top:36px;}
     .back-top:hover{color:var(--accent);}
-    .price-table td:first-child{color:var(--text);font-weight:500;}
   </style>
 </head>
 <body>
@@ -74,7 +71,7 @@
 
 <div class="hero">
   <div class="hero-badge">Справочное руководство · Web4</div>
-  <h1>BPA <span>Web4</span> — Система проверки интеллекта</h1>
+  <h1>PoI <span>Web4</span> — Система проверки интеллекта</h1>
   <p class="hero-slogan">"Everyone focuses on building markets, we focus on markets that build themselves."</p>
   <p>Децентрализованная платформа предсказательных рынков нового поколения. Здесь побеждает интеллект, а не капитал.</p>
   <div class="nav-pills">
@@ -82,7 +79,7 @@
     <a href="#advantages">Преимущества</a>
     <a href="#selffinancing">Самофинансирование</a>
     <a href="#poi-poc">PoI и PoC</a>
-    <a href="#poi-nft">Регистрация NFT</a>
+    <a href="#poi-nft">Регистрация</a>
     <a href="#pricing">Тарифы</a>
     <a href="#how-to-bet">Как ставить</a>
     <a href="#lp">Liquidity Provider</a>
@@ -102,30 +99,27 @@
 
 <div class="container">
 
-  <!-- 1. Philosophy -->
   <div class="section" id="philosophy">
-    <div class="section-header"><div class="section-icon">🧠</div><h2>Что такое BPA и зачем это нужно</h2></div>
-    <p>BPA (Batch Prediction Auction) — это не казино и не букмекерская контора. Это <strong style="color:var(--text)">система измерения интеллекта</strong> через реальные экономические ставки.</p>
-    <p>Традиционные платформы вознаграждают удачу. BPA вознаграждает знание. Участник, который систематически делает правильные предсказания, накапливает <strong style="color:var(--accent)">Proof of Intelligence (PoI)</strong> — криптографическое доказательство своего интеллекта, записанное в блокчейне навсегда.</p>
+    <div class="section-header"><div class="section-icon">🧠</div><h2>Что такое PoI и зачем это нужно</h2></div>
+    <p>PoI (Proof of Intelligence) — это не казино и не букмекерская контора. Это <strong style="color:var(--text)">система измерения интеллекта</strong> через реальные экономические ставки.</p>
+    <p>Традиционные платформы вознаграждают удачу. PoI вознаграждает знание. Участник, который систематически делает правильные предсказания, накапливает <strong style="color:var(--accent)">Proof of Intelligence</strong> — криптографическое доказательство своего интеллекта, записанное в блокчейне навсегда.</p>
     <div class="alert"><strong>Для регуляторов:</strong> Система не является азартной игрой. Размер ставки не определяет вероятность выигрыша — её определяет точность предсказания.</div>
     <p>Платформа полностью децентрализована. Нет центрального сервера, нет владельца, нет возможности манипулировать результатами. Код открыт, смарт-контракты верифицированы в блокчейне.</p>
   </div>
 
-  <!-- 2. Advantages -->
   <div class="section" id="advantages">
-    <div class="section-header"><div class="section-icon">⚡</div><h2>Преимущества BPA перед традиционными рынками</h2></div>
+    <div class="section-header"><div class="section-icon">⚡</div><h2>Преимущества перед традиционными рынками</h2></div>
     <ul class="adv-list">
-      <li><span class="icon">✅</span><div><strong>Нет маржина букмекера.</strong> Традиционные букмекеры берут 5-15% с каждой ставки. В BPA нет букмекера — рынок самофинансируемый. Комиссия только 0.5% с выигрыша.</div></li>
-      <li><span class="icon">✅</span><div><strong>Нет спреда.</strong> На традиционных биржах предсказательных рынков есть непрерывный стакан со спредом bid/ask. На контрактах $0-$1 даже спред в 1-2 цента = 10-20% потерь для покупателя. В BPA все ордера за временной интервал собираются в пакет (batch) и исполняются по единой клиринговой цене — спред полностью исчезает.</div></li>
-      <li><span class="icon">✅</span><div><strong>Нет маркет-мейкеров и стакана ордеров.</strong> Нет посредников которые зарабатывают на разнице цен. Цены определяются алгоритмом из реальных ордеров участников.</div></li>
-      <li><span class="icon">✅</span><div><strong>Полное самофинансирование.</strong> Все деньги участников остаются в системе. Выигрыши выплачиваются из проигрышей. Никакого внешнего финансирования не требуется.</div></li>
-      <li><span class="icon">✅</span><div><strong>Proof of Intelligence.</strong> Ваши правильные предсказания записываются в блокчейн навсегда. Это ваша репутация которую нельзя купить, продать или подделать.</div></li>
+      <li><span class="icon">✅</span><div><strong>Нет маржина букмекера.</strong> Традиционные букмекеры берут 5-15% с каждой ставки. Здесь нет букмекера — рынок самофинансируемый. Комиссия только 0.5% с выигрыша.</div></li>
+      <li><span class="icon">✅</span><div><strong>Нет спреда.</strong> На традиционных биржах предсказательных рынков есть непрерывный стакан со спредом bid/ask. Даже спред в 1-2 цента = 10-20% потерь. Все ордера за временной интервал собираются в пакет (batch) и исполняются по единой клиринговой цене — спред полностью исчезает.</div></li>
+      <li><span class="icon">✅</span><div><strong>Нет маркет-мейкеров.</strong> Нет посредников которые зарабатывают на разнице цен. Цены определяются алгоритмом из реальных ордеров участников.</div></li>
+      <li><span class="icon">✅</span><div><strong>Полное самофинансирование.</strong> Все деньги участников остаются в системе. Выигрыши выплачиваются из проигрышей.</div></li>
+      <li><span class="icon">✅</span><div><strong>Proof of Intelligence.</strong> Правильные предсказания записываются в блокчейн навсегда. Это репутация которую нельзя купить, продать или подделать.</div></li>
       <li><span class="icon">✅</span><div><strong>Децентрализация.</strong> Нет компании которую можно закрыть. Нет сервера который можно взломать. Нет владельца который может заморозить ваши средства.</div></li>
       <li><span class="icon">✅</span><div><strong>IoT страхование без страховых компаний.</strong> Параметрическое страхование через смарт-контракты. Автоматическая выплата по данным датчиков без бюрократии.</div></li>
     </ul>
   </div>
 
-  <!-- 3. Self-financing -->
   <div class="section" id="selffinancing">
     <div class="section-header"><div class="section-icon">📐</div><h2>Формулы самофинансирования</h2></div>
     <p>Система полностью самофинансируемая — выигрыши выплачиваются из общего пула ставок. Цены состояний определяются следующими формулами:</p>
@@ -137,67 +131,60 @@
       <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;"><strong style="color:var(--accent)">Ti</strong> — Pool Bet на исход i (только LP и seed)</li>
       <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;"><strong style="color:var(--accent)">Yi</strong> — Fix Bet на исход i (обычные участники)</li>
     </ul>
-    <p style="margin-top:10px;">Условие ΣPi = 1 гарантирует что сумма всех вероятностей всегда равна 1 — математически корректное распределение.</p>
+    <p style="margin-top:10px;">Условие ΣPi = 1 гарантирует что сумма всех вероятностей всегда равна 1.</p>
   </div>
 
-  <!-- 4. PoI PoC -->
   <div class="section" id="poi-poc">
     <div class="section-header"><div class="section-icon">🏆</div><h2>Proof of Intelligence (PoI) и Proof of Conviction (PoC)</h2></div>
     <div class="card">
       <h3>Proof of Intelligence (PoI) — Доказательство интеллекта</h3>
       <p>PoI накапливается за каждое правильное предсказание. Чем менее очевидный исход вы предсказали правильно — тем больше PoI получаете.</p>
       <div class="formula">PoI = log(1/p) − E[log(1/p)]</div>
-      <p>где <strong>p</strong> — рыночная цена исхода в момент вашей ставки. PoI записывается по категориям: Спорт, Финансы, Политика, Погода, Редкие события.</p>
+      <p>где <strong>p</strong> — рыночная цена исхода в момент вашей ставки. Категории: Спорт, Финансы, Политика, Погода, Редкие события.</p>
     </div>
     <div class="card">
       <h3>Proof of Conviction (PoC) — Доказательство убеждённости</h3>
-      <p>PoC объединяет интеллект со шкурным интересом. В теории игр и экономике принятия решений этот принцип решает проблему асимметрии стимулов: невозможно давать качественные прогнозы не рискуя собственными деньгами. Коротко — «поставь шкуру на кон».</p>
+      <p>PoC объединяет интеллект со шкурным интересом. В теории игр этот принцип решает проблему асимметрии стимулов — «поставь шкуру на кон».</p>
       <div class="formula">PoC = √stake × PoI</div>
-      <p>Квадратный корень предотвращает плутократию: удвоение ставки даёт лишь 40% прироста веса, а не 100%.</p>
+      <p>Квадратный корень предотвращает плутократию: удвоение ставки даёт лишь 40% прироста веса.</p>
     </div>
     <div class="card">
       <h3>Зачем нужны PoI и PoC?</h3>
-      <p>PoI и PoC дают три важных права:</p>
-      <p style="margin-top:8px;">1. <strong style="color:var(--text)">Право участвовать</strong> — без PoI NFT нельзя ставить ордера.</p>
+      <p>1. <strong style="color:var(--text)">Право участвовать</strong> — без PoI NFT нельзя ставить ордера.</p>
       <p>2. <strong style="color:var(--text)">Право голосовать</strong> — голосование в DisputeOracle взвешено по PoC. Ваш голос весит пропорционально вашему доказанному интеллекту.</p>
-      <p>3. <strong style="color:var(--text)">Верифицированное резюме</strong> — PoI NFT это доказательство аналитических способностей записанное в блокчейне навсегда. Нельзя купить, подделать или потерять. Можно показать работодателям или клиентам как доказательство качества прогнозов.</p>
+      <p>3. <strong style="color:var(--text)">Верифицированное резюме</strong> — PoI NFT это доказательство аналитических способностей в блокчейне навсегда. Нельзя купить или подделать. Можно показать работодателям как доказательство качества прогнозов.</p>
     </div>
-    <div class="alert"><strong>Важно:</strong> PoI не начисляется Liquidity Provider — LP ставит на все исходы и не делает прогнозов. Система поощряет убеждённость, а не страховку.</div>
-    <p style="margin-top:12px;"><strong style="color:var(--text)">31 декабря каждого года</strong> — если в Treasury остаются средства после всех операционных расходов, топ-3 участника по PoC получают 70% остатка поровну. Если остатка нет — бонус не выплачивается. 30% всегда переходит на следующий год.</p>
+    <div class="alert"><strong>Важно:</strong> PoI не начисляется Liquidity Provider — LP ставит на все исходы и не делает прогнозов.</div>
+    <p style="margin-top:12px;"><strong style="color:var(--text)">31 декабря каждого года</strong> — если в Treasury остаются средства после всех расходов, топ-3 по PoC получают 70% остатка поровну. 30% переходит на следующий год.</p>
   </div>
 
-  <!-- 5. NFT Registration -->
   <div class="section" id="poi-nft">
     <div class="section-header"><div class="section-icon">🎖️</div><h2>Регистрация — PoI NFT (Soulbound Token)</h2></div>
-    <p>Для участия в платформе необходимо зарегистрироваться — минтить PoI NFT. <strong style="color:var(--text)">Без NFT невозможно поставить ни одного ордера.</strong></p>
+    <p>Для участия необходимо зарегистрироваться — минтить PoI NFT. <strong style="color:var(--text)">Без NFT невозможно поставить ни одного ордера.</strong></p>
     <p style="margin-top:8px;">PoI NFT — нетрансферируемый токен (Soulbound Token). Его нельзя продать, передать или подделать. Привязан к вашему адресу навсегда.</p>
     <h3>Что записывается в NFT:</h3>
     <ul style="list-style:none;padding:0;margin-top:6px;">
       <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;">📊 <strong style="color:var(--text)">PoI по категориям:</strong> Спорт, Финансы, Политика, Погода, Редкие события</li>
       <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;">💪 <strong style="color:var(--text)">PoC score</strong></li>
       <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;">🔑 <strong style="color:var(--text)">Адрес кошелька</strong></li>
-      <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;">📅 <strong style="color:var(--text)">История предсказаний</strong> — обновляется после каждого правильного прогноза</li>
+      <li style="padding:5px 0;color:var(--muted);font-size:0.88rem;">📅 <strong style="color:var(--text)">История предсказаний</strong> — обновляется автоматически после каждого правильного прогноза</li>
     </ul>
-    <div class="alert"><strong>Защита от клонов:</strong> NFT привязан к конкретным адресам смарт-контрактов BPA. Даже если кто-то скопирует весь код — ваш PoI остаётся только в оригинальных контрактах.</div>
+    <div class="alert"><strong>Защита от клонов:</strong> NFT привязан к конкретным адресам смарт-контрактов. Даже если кто-то скопирует весь код — ваш PoI остаётся только в оригинальных контрактах.</div>
   </div>
 
-  <!-- 6. Pricing -->
   <div class="section" id="pricing">
     <div class="section-header"><div class="section-icon">💵</div><h2>Тарифы</h2></div>
-    <table class="price-table">
+    <table>
       <tr><th>Услуга</th><th>Стоимость</th><th>Примечание</th></tr>
       <tr><td>Регистрация PoI NFT</td><td>$0.79 в крипто / $0.99 фиат</td><td>Разовый платёж навсегда. $1 → минтеру, $1 → Treasury</td></tr>
       <tr><td>Предсказания в месяц</td><td>Бесплатно</td><td>Первые 100 предсказаний каждый месяц</td></tr>
       <tr><td>Сверх 100 предсказаний</td><td>$0.10 за каждое</td><td>Идёт в Treasury</td></tr>
-      <tr><td>Срочное обновление NFT</td><td>$0.19</td><td>Внеплановое обновление PoI данных</td></tr>
-      <tr><td>Перепродажа NFT</td><td>5-10% роялти</td><td>При вторичной продаже</td></tr>
     </table>
   </div>
 
-  <!-- 7. How to bet -->
   <div class="section" id="how-to-bet">
     <div class="section-header"><div class="section-icon">📋</div><h2>Как ставить ордера</h2></div>
-    <p><strong style="color:var(--text)">Минимальная ставка: эквивалент $1 в ETH.</strong> Short продажи запрещены — можно продавать только позиции которые уже куплены. Продажа доступна только после первого batch.</p>
+    <p><strong style="color:var(--text)">Минимальная ставка: эквивалент $1 в ETH.</strong> Short продажи запрещены. Продавать можно только позиции которые уже куплены, и только после первого batch.</p>
     <div class="alert-red" style="margin-top:12px;"><strong>Только Fix Bet для обычных участников.</strong> Pool Bet доступен только для Liquidity Provider.</div>
     <div style="margin-top:14px;">
       <div class="card"><h3>Fix Bet (Лимитный ордер) <span class="tag green">Для участников</span></h3><p>Вы указываете исход и минимальную цену. Если рыночная цена при клиринге выше вашего лимита — ордер отклоняется и депозит возвращается.</p></div>
@@ -208,58 +195,56 @@
       <li><span><strong>Подключите Web3 кошелёк</strong> (MetaMask, Rabby, Coinbase Wallet или любой другой)</span></li>
       <li><span><strong>Зарегистрируйтесь</strong> — минтите PoI NFT ($0.79 крипто, разово навсегда)</span></li>
       <li><span><strong>Выберите маркет</strong> и исход</span></li>
-      <li><span><strong>Укажите сумму</strong> (минимум $1 эквивалент в ETH) и лимитную цену (от 0 до 1)</span></li>
+      <li><span><strong>Укажите сумму</strong> (минимум $1 в ETH) и лимитную цену (от 0 до 1)</span></li>
       <li><span><strong>Подтвердите в кошельке</strong></span></li>
       <li><span><strong>Ждите клиринга</strong> — происходит автоматически</span></li>
     </ol>
   </div>
 
-  <!-- 8. LP -->
   <div class="section" id="lp">
     <div class="section-header"><div class="section-icon">💧</div><h2>Liquidity Provider (LP)</h2></div>
     <p>LP обеспечивает начальную ликвидность рынка. Ставит на <strong style="color:var(--text)">все исходы одновременно</strong> пропорционально текущим ценам через Pool Bet.</p>
     <h3>Как стать LP:</h3>
     <p>Нажмите кнопку "Стать LP" в интерфейсе. Система автоматически распределит вашу ставку на все исходы.</p>
     <h3>Вознаграждение LP:</h3>
-    <p>LP всегда выигрывает на одном исходе (правильном) и проигрывает на остальных N-1. Выигрыш зависит от размера пула (паримутюэль), а не фиксированный. Дополнительно LP получает <strong style="color:var(--text)">0.1% от объёма своих ставок</strong> (максимум эквивалент $100 за batch) как премию за предоставление ликвидности.</p>
+    <p>LP всегда выигрывает на одном исходе (правильном) и проигрывает на остальных. Выигрыш зависит от размера пула (паримутюэль), а не фиксированный. Дополнительно LP получает <strong style="color:var(--text)">0.1% от объёма своих ставок</strong> (максимум $100 за batch) как премию за ликвидность.</p>
     <h3>Риск LP:</h3>
-    <p>Риск в том что потери на N-1 проигравших исходах могут превысить выигрыш на правильном исходе плюс премию 0.1%.</p>
+    <p>Потери на проигравших исходах могут превысить выигрыш на правильном исходе плюс премию 0.1%.</p>
     <h3>Что НЕ получает LP:</h3>
     <ul style="list-style:none;padding:0;margin-top:6px;">
       <li style="padding:4px 0;color:var(--muted);font-size:0.87rem;">❌ PoI — LP не делает прогнозов</li>
       <li style="padding:4px 0;color:var(--muted);font-size:0.87rem;">❌ PoC — не начисляется</li>
       <li style="padding:4px 0;color:var(--muted);font-size:0.87rem;">❌ Право голоса в DisputeOracle</li>
-      <li style="padding:4px 0;color:var(--muted);font-size:0.87rem;">❌ LP не запускает клиринг (его ордера не считаются в правиле N-1)</li>
+      <li style="padding:4px 0;color:var(--muted);font-size:0.87rem;">❌ LP не запускает клиринг</li>
     </ul>
   </div>
 
-  <!-- 9. Clearing -->
   <div class="section" id="clearing">
     <div class="section-header"><div class="section-icon">⚖️</div><h2>Клиринг — как работает batch</h2></div>
     <p>Клиринг — процесс определения рыночных цен и распределения выигрышей. Использует алгоритм основанный на математических работах по теории предсказательных рынков.</p>
     <h3>Когда запускается batch?</h3>
-    <p>Необходимо минимум <strong style="color:var(--text)">10 реальных ордеров</strong> (не считая LP и seed) на каждый участвующий исход:</p>
+    <p>Необходимо минимум <strong style="color:var(--text)">10 реальных ордеров</strong> (не считая LP и seed) на каждый из двух любых исходов. Это универсальное правило для любого количества исходов:</p>
     <table>
       <tr><th>Количество исходов</th><th>Условие запуска</th><th>Минимум ордеров</th></tr>
-      <tr><td>2 исхода</td><td>ОБА исхода</td><td>10 + 10 = 20</td></tr>
-      <tr><td>3 исхода</td><td>N-1 = 2 исхода</td><td>10 + 10 = 20</td></tr>
-      <tr><td>5 исходов</td><td>N-3 = 2 исхода</td><td>10 + 10 = 20</td></tr>
+      <tr><td>2 исхода</td><td>Оба исхода должны быть покрыты</td><td>10 + 10 = 20</td></tr>
+      <tr><td>3 исхода</td><td>Любые 2 из 3 покрыты</td><td>10 + 10 = 20</td></tr>
+      <tr><td>5 исходов</td><td>Любые 2 из 5 покрыты</td><td>10 + 10 = 20</td></tr>
+      <tr><td>5+ исходов</td><td>Любые 2 исхода покрыты</td><td>10 + 10 = 20</td></tr>
     </table>
     <div class="alert" style="margin-top:12px;"><strong>Важно:</strong> Маркет считается состоявшимся только если произошёл хотя бы один batch. Финальный резолв без batch не выплачивает выигрыши.</div>
-    <div class="card" style="margin-top:12px;"><h3>Seed-ордера</h3><p>При создании маркета AI агент размещает начальные ордера. Вероятности берутся из открытых источников. Seed обеспечивает начальную ликвидность, но не влияет на запуск клиринга.</p></div>
+    <div class="card" style="margin-top:12px;"><h3>Seed-ордера</h3><p>При создании маркета AI агент размещает начальные ордера с вероятностями из открытых источников. Seed обеспечивает начальную ликвидность, но не запускает клиринг.</p></div>
   </div>
 
-  <!-- 10. Fees -->
   <div class="section" id="fees">
     <div class="section-header"><div class="section-icon">💰</div><h2>Комиссии: кто платит и кто получает</h2></div>
-    <p>Все комиссии поступают в <strong style="color:var(--text)">Treasury</strong>. Treasury оплачивает операционные расходы. Если после всех расходов остаётся баланс — 70% распределяется между топ-3 по PoC 31 декабря. 30% всегда переходит на следующий год.</p>
+    <p>Все комиссии поступают в <strong style="color:var(--text)">Treasury</strong>. Treasury оплачивает операционные расходы. Если после всех расходов остаётся баланс — 70% распределяется между топ-3 по PoC 31 декабря. 30% переходит на следующий год.</p>
     <table>
       <tr><th>Комиссия</th><th>Кто платит</th><th>Кто получает</th><th>Размер</th></tr>
       <tr><td>С выигрыша</td><td>Победитель</td><td>Treasury</td><td>0.5%</td></tr>
-      <tr><td>Вознаграждение LP</td><td>Treasury</td><td>Liquidity Provider</td><td>0.1% от объёма, макс. $100</td></tr>
+      <tr><td>Вознаграждение LP</td><td>Treasury</td><td>Liquidity Provider</td><td>0.1% от объёма, макс. $100/batch</td></tr>
       <tr><td>За создание маркета</td><td>Treasury</td><td>Создатель маркета</td><td>~$0.05 (после события, если был batch)</td></tr>
       <tr><td>AI анализ вероятностей</td><td>Treasury</td><td>AI Агент</td><td>~$0.05 (при создании)</td></tr>
-      <tr><td>Node оператор</td><td>Treasury</td><td>Первый правильный node</td><td>Фиксированная награда</td></tr>
+      <tr><td>Node оператор</td><td>Treasury</td><td>Первый правильный node</td><td>$0.10 за batch</td></tr>
       <tr><td>Регистрация PoI NFT</td><td>Участник</td><td>Минтер + Treasury</td><td>$0.79 крипто ($1+$1)</td></tr>
       <tr><td>Подача диспута</td><td>Диспутант</td><td>Jurors (голосующие)</td><td>0.01 ETH</td></tr>
       <tr><td>IoT данные</td><td>Treasury</td><td>Владелец сенсора</td><td>0.001 ETH / использование</td></tr>
@@ -267,38 +252,35 @@
     </table>
   </div>
 
-  <!-- 11. AI Agents -->
   <div class="section" id="agents">
     <div class="section-header"><div class="section-icon">🤖</div><h2>AI Агенты</h2></div>
     <p>Каждый агент запускается локально участниками сети — централизованного сервера нет.</p>
     <div class="agent-grid">
-      <div class="card"><h3>market_creator_agent.py</h3><p>Создаёт маркеты из одобренных событий. Получает начальные вероятности из открытых источников. Нормализует вероятности и размещает seed ордера.</p></div>
-      <div class="card"><h3>distortion_agent.py <span class="tag">Платный</span></h3><p>Анализирует рыночные цены и находит переоценённые (overvalued) и недооценённые (undervalued) исходы. Не торгует — только предоставляет анализ участнику.</p></div>
-      <div class="card"><h3>node.py</h3><p>Основной узел сети. Автоматически следит за ордерами, запускает клиринг, записывает результаты, обновляет PoI и PoC, отправляет verdict в DisputeOracle.</p></div>
+      <div class="card"><h3>market_creator_agent.py</h3><p>Создаёт маркеты из одобренных событий. Получает начальные вероятности из открытых источников. Нормализует и размещает seed ордера.</p></div>
+      <div class="card"><h3>distortion_agent.py <span class="tag">Платный</span></h3><p>Анализирует рыночные цены и находит переоценённые и недооценённые исходы. Не торгует — только предоставляет анализ участнику.</p></div>
+      <div class="card"><h3>node.py</h3><p>Основной узел сети. Автоматически следит за ордерами, запускает клиринг, записывает результаты, обновляет PoI и PoC.</p></div>
       <div class="card"><h3>blocking_agent.py</h3><p>AI-модератор. Проверяет новые события на спам, манипуляции, неоднозначность. Блокирует некачественные маркеты.</p></div>
-      <div class="card"><h3>iot_agent.py</h3><p>Собирает данные IoT сенсоров, сравнивает с официальными источниками, применяет консенсус 3 из 5. Выявляет манипуляции с датчиками.</p></div>
-      <div class="card"><h3>resolver_agent.py</h3><p>Автоматически резолвит маркеты после событий. Читает официальные результаты из открытых источников.</p></div>
-      <div class="card"><h3>weather_agent.py</h3><p>Получает данные о погоде из открытых источников. Контрольный источник для IoT сенсоров.</p></div>
-      <div class="card"><h3>annual_bonus.py</h3><p>Запускается 31 декабря. Проверяет остаток Treasury после расходов. Распределяет 70% между топ-3 по PoC. 30% → следующий год.</p></div>
+      <div class="card"><h3>iot_agent.py</h3><p>Собирает данные IoT сенсоров, сравнивает с официальными источниками, применяет консенсус 3 из 5. Выявляет манипуляции.</p></div>
+      <div class="card"><h3>resolver_agent.py</h3><p>Автоматически резолвит маркеты после событий из официальных источников.</p></div>
+      <div class="card"><h3>weather_agent.py</h3><p>Данные о погоде из открытых источников. Контрольный источник для IoT сенсоров.</p></div>
+      <div class="card"><h3>annual_bonus.py</h3><p>Запускается 31 декабря. Распределяет 70% остатка Treasury между топ-3 по PoC. 30% → следующий год.</p></div>
     </div>
   </div>
 
-  <!-- 12. Contracts -->
   <div class="section" id="contracts">
     <div class="section-header"><div class="section-icon">📜</div><h2>Смарт-контракты</h2></div>
-    <div class="card"><h3>BPAMarket.sol <span class="tag">Главный</span></h3><p>Управляет маркетами, ордерами, клирингом, выплатами. Хранит ETH участников.</p><p style="margin-top:6px;">Адрес: <span class="address">0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0</span></p></div>
+    <div class="card"><h3>BPAMarket.sol <span class="tag">Главный</span></h3><p>Управляет маркетами, ордерами, клирингом, выплатами.</p><p style="margin-top:6px;">Адрес: <span class="address">0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0</span></p></div>
     <div class="card"><h3>PoiNFT.sol <span class="tag">SBT</span></h3><p>Soulbound Token. Хранит PoI по категориям и PoC. Нетрансферируемый.</p><p style="margin-top:6px;">Адрес: <span class="address">0x6f7a6f2462b74455D920BBC9A1C916f65F90EE50</span></p></div>
     <div class="card"><h3>DisputeOracle.sol</h3><p>Система оспаривания результатов. Голосование взвешено по PoC.</p><p style="margin-top:6px;">Адрес: <span class="address">0x4ce64b5818c4FFb581184d2f43FbBF92d152AE05</span></p></div>
     <div class="card"><h3>EventCalendar.sol</h3><p>Децентрализованный календарь событий. Любой участник может предложить событие.</p><p style="margin-top:6px;">Адрес: <span class="address">0x667637489b064fE2f9495429afA5442843886225</span></p></div>
     <div class="card"><h3>IoTRegistry.sol</h3><p>Реестр IoT сенсоров. Консенсус 3 из 5 для резолва маркета.</p></div>
   </div>
 
-  <!-- 13. Dispute -->
   <div class="section" id="dispute">
     <div class="section-header"><div class="section-icon">⚠️</div><h2>Система диспутов</h2></div>
-    <p>Если вы не согласны с объявленным победителем — у вас есть 24 часа чтобы оспорить результат.</p>
+    <p>Если вы не согласны с результатом — у вас есть 24 часа чтобы оспорить.</p>
     <ol class="steps" style="margin-top:12px;">
-      <li><span><strong>Нажмите "Dispute"</strong> — доступно только для resolved маркетов. Стоимость: 0.01 ETH.</span></li>
+      <li><span><strong>Нажмите "Dispute"</strong> — доступно для resolved маркетов. Стоимость: 0.01 ETH.</span></li>
       <li><span><strong>Голосование 24 часа</strong> — участники с PoI NFT голосуют. Вес = PoC.</span></li>
       <li><span><strong>Финализация</strong> — любой вызывает finalizeDispute после 24 часов.</span></li>
       <li><span><strong>Вознаграждение</strong> — 0.01 ETH распределяется между проголосовавшими пропорционально PoC.</span></li>
@@ -306,7 +288,6 @@
     <div class="alert"><strong>Важно:</strong> LP не могут голосовать в диспутах — их PoC = 0.</div>
   </div>
 
-  <!-- 14. IoT -->
   <div class="section" id="iot">
     <div class="section-header"><div class="section-icon">🌡️</div><h2>IoT — Параметрическое страхование</h2></div>
     <p>Фермер, рыбак, владелец склада может застраховаться от природных катастроф <strong style="color:var(--text)">без страховой компании</strong>. Выплата происходит автоматически по данным IoT сенсоров.</p>
@@ -318,12 +299,10 @@
     <div class="card"><h3>Как зарегистрировать сенсор</h3><p>Поддерживаются устройства с WiFi API (Shelly, ESP32, Arduino). Запустите iot_agent.py и зарегистрируйте с координатами. Каждое использование данных = 0.001 ETH автоматически.</p></div>
   </div>
 
-  <!-- 15. Node operators -->
   <div class="section" id="node">
     <div class="section-header"><div class="section-icon">⚙️</div><h2>Node операторы</h2></div>
-    <p>Node оператор запускает `node.py` который автоматически следит за ордерами и запускает клиринг. Программа работает в фоне 24/7 — вмешательство не нужно.</p>
-    <h3>Кто может быть node оператором?</h3>
-    <p>Требуемое количество nodes зависит от размера сообщества:</p>
+    <p>Node оператор запускает `node.py` который автоматически следит за ордерами и запускает клиринг 24/7. Первый node который прислал правильный результат получает <strong style="color:var(--text)">$0.10</strong> из Treasury.</p>
+    <h3>Динамический консенсус:</h3>
     <table>
       <tr><th>Участников</th><th>Минимум nodes</th><th>Консенсус</th></tr>
       <tr><td>менее 100</td><td>1</td><td>1 из 1</td></tr>
@@ -332,69 +311,58 @@
       <tr><td>более 1000</td><td>5</td><td>3 из 5</td></tr>
     </table>
     <p style="margin-top:10px;">Если доступно более 5 nodes — выбираются топ-5 по PoC. Нечестный node теряет право быть оператором при первом нарушении и PoI NFT навсегда при втором.</p>
-    <h3>Механизм награды:</h3>
-    <p>Первый node который прислал правильный результат получает награду из Treasury. Случайная задержка у каждого node предотвращает газовые войны.</p>
-    <div class="alert"><strong>Обычному участнику запускать node не нужно.</strong> Просто ставьте ордера — node операторы сделают клиринг.</div>
+    <div class="alert"><strong>Обычному участнику запускать node не нужно.</strong> Просто ставьте ордера — node операторы сделают клиринг автоматически.</div>
   </div>
 
-  <!-- 16. Access -->
   <div class="section" id="access">
-    <div class="section-header"><div class="section-icon">💻</div><h2>Как получить доступ к платформе</h2></div>
-
+    <div class="section-header"><div class="section-icon">💻</div><h2>Как получить доступ</h2></div>
     <div class="card">
-      <h3>📱 Обычный участник — только браузер (Arweave)</h3>
-      <p>Никакой установки не нужно! Просто откройте постоянную Arweave ссылку в браузере — работает на телефоне и компьютере. Подключите MetaMask, зарегистрируйтесь (PoI NFT) и ставьте ордера.</p>
+      <h3>📱 Обычный участник — только браузер</h3>
+      <p>Никакой установки не нужно! Откройте постоянную Arweave ссылку в браузере — работает на телефоне и компьютере. Подключите кошелёк, зарегистрируйтесь и ставьте ордера.</p>
       <p style="margin-top:8px;color:var(--accent);font-size:0.83rem;">Ссылка на Arweave: [публикуется сообществом]</p>
     </div>
-
     <div class="card">
       <h3>🖥️ Разработчик — локальная установка</h3>
-      <p>Для тех кто хочет изучить или изменить код:</p>
-      <div class="code-block">git clone https://github.com/fairbidlab/bpa<br>cd bpa<br>npm install<br>npm start<br><span style="color:var(--muted)"># Откройте http://localhost:3000</span></div>
+      <p>Для изучения или изменения кода:</p>
+      <div class="code-block">git clone https://github.com/fairbidlab/bpa<br>cd bpa && npm install && npm start</div>
     </div>
-
     <div class="card">
-      <h3>⚙️ Node оператор — дополнительно к браузеру</h3>
-      <p>Для выполнения клиринга и получения награды:</p>
-      <div class="code-block">pip install -r requirements.txt<br>python node.py<br><span style="color:var(--muted)"># Работает в фоне 24/7</span></div>
+      <h3>⚙️ Node оператор — дополнительно</h3>
+      <p>Для выполнения клиринга и получения награды $0.10:</p>
+      <div class="code-block">pip install -r requirements.txt<br>python node.py  # работает в фоне 24/7</div>
     </div>
-
-    <h3>Проверка безопасности (SHA256):</h3>
+    <h3 style="margin-top:16px;">Проверка безопасности (SHA256):</h3>
     <p>Каждая версия публикует SHA256 хэш. Сравните хэш скачанного файла с официальным — это гарантирует что файл не изменён.</p>
   </div>
 
-  <!-- 17. Security -->
   <div class="section" id="security">
     <div class="section-header"><div class="section-icon">🔒</div><h2>Безопасность и защита</h2></div>
-    <h3>Почему код безопасно скачивать:</h3>
     <ul class="adv-list">
-      <li><span class="icon">🔍</span><div><strong>Открытый код.</strong> Любой читает каждую строку. Тысячи людей проверили код — как в Bitcoin.</div></li>
+      <li><span class="icon">🔍</span><div><strong>Открытый код.</strong> Любой читает каждую строку. Нет скрытых функций — как в Bitcoin.</div></li>
       <li><span class="icon">🔐</span><div><strong>SHA256 хэш.</strong> Официальный хэш для каждой версии. Изменённый файл имеет другой хэш.</div></li>
-      <li><span class="icon">♾️</span><div><strong>Arweave.</strong> Постоянный неизменяемый хэш. Файл на Arweave не может быть изменён задним числом.</div></li>
+      <li><span class="icon">♾️</span><div><strong>Arweave.</strong> Постоянный неизменяемый хэш. Файл не может быть изменён задним числом.</div></li>
+      <li><span class="icon">📍</span><div><strong>Адреса смарт-контрактов уникальны.</strong> Клон получает другие адреса — ваш PoI остаётся только в оригинале.</div></li>
+      <li><span class="icon">🛡️</span><div><strong>Консенсус nodes.</strong> Нечестный node не может изменить результат — нужно большинство топ-5 по PoC. Мошенник теряет PoI NFT навсегда.</div></li>
     </ul>
-    <h3>Защита от клонов:</h3>
-    <ul class="adv-list">
-      <li><span class="icon">📍</span><div><strong>Адреса смарт-контрактов уникальны.</strong> Клон получает другие адреса → нулевая история → ваш PoI остаётся только в оригинале.</div></li>
-      <li><span class="icon">👥</span><div><strong>Сетевой эффект.</strong> Существующие пользователи, история транзакций, накопленный PoI — всё это у оригинала.</div></li>
-      <li><span class="icon">⏰</span><div><strong>Временная метка блокчейна.</strong> Оригинальный контракт всегда "старше". Легко проверить кто первый.</div></li>
-    </ul>
-    <h3>Защита от испорченного node:</h3>
-    <p>Консенсус 3 из 5 nodes — один мошенник не может изменить результат. Смарт-контракт математически проверяет результат. Нечестный node теряет PoI NFT навсегда.</p>
   </div>
 
-  <!-- 18. Governance -->
   <div class="section" id="dao">
     <div class="section-header"><div class="section-icon">🏛️</div><h2>Управление и децентрализация</h2></div>
     <p>Нет CEO, нет офиса поддержки, нет возможности заморозить средства. Код открыт, смарт-контракты неизменяемы.</p>
-    <div class="card"><h3>Как предложить изменение</h3><p>Создайте Issue в репозитории. Участники с высоким PoC имеют больший вес при обсуждении. Изменения принимаются через Pull Request.</p></div>
-    <div class="card"><h3>Вопросы и поддержка</h3><p>Задавайте вопросы на GitHub Discussions — <a href="community.html" style="color:var(--accent);">страница Community</a>. Другие участники и топ-3 по PoC ответят. Никто не может вернуть средства если вы потеряли приватный ключ — храните его в безопасном месте.</p></div>
+    <div class="card">
+      <h3>Как принимаются изменения кода</h3>
+      <p>Изменения в платформе принимаются только через голосование топ-50 участников по PoC с 80% большинством. Никто единолично не может изменить правила. Предложение изменения: создайте Issue в репозитории с описанием и обоснованием.</p>
+    </div>
+    <div class="card">
+      <h3>Вопросы и поддержка</h3>
+      <p>Задавайте вопросы на GitHub Discussions — <a href="community.html" style="color:var(--accent);">страница Community</a>. Никто не может вернуть средства если вы потеряли приватный ключ — храните его в безопасном месте.</p>
+    </div>
   </div>
 
-  <!-- 19. Disclaimer -->
   <div class="section" id="disclaimer">
     <div class="section-header"><div class="section-icon">⚠️</div><h2>Дисклеймер</h2></div>
     <p>Код полностью открытый — любой может прочитать каждую строку. Ответственность за проверку кода лежит на сообществе. Bitcoin и Ethereum также работают без гарантий.</p>
-    <p style="margin-top:10px;">Используйте только средства которые готовы потерять. Разработчики не несут ответственности за технические сбои. Запуск в основной сети планируется на Polygon или аналогичной сети с низкими комиссиями.</p>
+    <p style="margin-top:10px;">Используйте только средства которые готовы потерять. Разработчики не несут ответственности за технические сбои. Платформа работает на Polygon или аналогичной сети с низкими комиссиями.</p>
   </div>
 
   <a href="#" class="back-top">↑ Наверх</a>
