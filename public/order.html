@@ -158,7 +158,7 @@
 
   <script>
     const MEMPOOL_URL = 'http://localhost:5002';
-    const BPA_MARKET = '0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0';
+    const BPA_MARKET = '0x5982ff32a7466469aABB86D343530Bc210549A0e';
     const POI_NFT = '0x1C4D2DFAEd37390026A21054d8081caCA078e34b';
     const CHAIN_ID = 11155111;
     const OUTCOMES = ['England', 'Draw', 'Germany'];
@@ -263,7 +263,8 @@
           'Quantity: ' + quantity + ' contracts\n' +
           'Limit Price: ' + limitPriceVal.toFixed(3) + '\n' +
           'Deposit: ' + ethAmount + ' ETH\n\n' +
-          'WARNING: Orders cannot be cancelled!'
+          'WARNING: Orders cannot be cancelled!' +
+          (orderSide === 'sell' ? '\n\n⚠️ SELL FEE: 0.1% commission will be deducted from your payout and sent to Treasury.' : '')
         );
         if (!confirmed) { log('Cancelled', '#8892a4'); return; }
 
@@ -361,7 +362,7 @@
       if (!confirmed) { return; }
       try {
         const feeTx = await signer.sendTransaction({
-          to: '0x2030ddB507e63a79F2CBF20934a9324965D9Ebf0',
+          to: '0x5982ff32a7466469aABB86D343530Bc210549A0e',
           value: ethers.parseEther('0.0002')
         });
         await feeTx.wait();
