@@ -422,7 +422,7 @@
         const readProvider = new ethers.JsonRpcProvider(RPC_URL);
         const MARKET_ABI = [
           "function marketCount() external view returns (uint256)",
-          "function markets(uint256) external view returns (uint256 id, string name, string[] outcomes, uint8 status, uint256 endTime, string winningOutcome, address creator, uint256 seedAmount, bool succeeded)"
+          "function markets(uint256) external view returns (uint256 id, string name, uint8 status, uint256 endTime, string winningOutcome, address creator, uint256 seedAmount, bool succeeded)"
         ];
         const readContract = new ethers.Contract(BPA_MARKET, MARKET_ABI, readProvider);
         const count = await readContract.marketCount();
@@ -435,10 +435,10 @@
         for (let i = Number(count); i >= 1; i--) {
           try {
             const m = await readContract.markets(i);
-            if (m[3] == 0 && Number(m[4]) > now) { // Open and not expired
+            if (m[2] == 0 && Number(m[3]) > now) { // Open and not expired (status=m[2], endTime=m[3])
               const opt = document.createElement('option');
               opt.value = i;
-              opt.textContent = `#${i} — ${m[1]} (ends: ${new Date(Number(m[4])*1000).toLocaleDateString()})`;
+              opt.textContent = `#${i} — ${m[1]} (ends: ${new Date(Number(m[3])*1000).toLocaleDateString()})`;
               select.appendChild(opt);
               added++;
             }
@@ -461,11 +461,11 @@
       try {
         const readProvider = new ethers.JsonRpcProvider(RPC_URL);
         const MARKET_ABI = [
-          "function markets(uint256) external view returns (uint256 id, string name, string[] outcomes, uint8 status, uint256 endTime, string winningOutcome, address creator, uint256 seedAmount, bool succeeded)"
+          "function markets(uint256) external view returns (uint256 id, string name, uint8 status, uint256 endTime, string winningOutcome, address creator, uint256 seedAmount, bool succeeded)",
+          "function getOutcomes(uint256 marketId) external view returns (string[] memory)"
         ];
         const readContract = new ethers.Contract(BPA_MARKET, MARKET_ABI, readProvider);
-        const m = await readContract.markets(marketId);
-        const outcomes = m[2];
+        const outcomes = await readContract.getOutcomes(marketId);
         
         const btns = document.getElementById('outcomeButtons');
         btns.innerHTML = '';
