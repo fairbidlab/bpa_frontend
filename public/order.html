@@ -466,17 +466,29 @@
           "function getOutcomes(uint256 marketId) external view returns (string[] memory)"
         ];
         const readContract = new ethers.Contract(BPA_MARKET, MARKET_ABI, readProvider);
-        const outcomes = await readContract.getOutcomes(marketId);
+        const ODDS_ABI = [
+          "function getOutcomes(uint256 marketId) external view returns (string[] memory)",
+          "function getInitialOdds(uint256 marketId, string memory outcome) external view returns (uint256)"
+        ];
+        const oddsContract = new ethers.Contract(BPA_MARKET, ODDS_ABI, readProvider);
+        const outcomes = await oddsContract.getOutcomes(marketId);
         
         const btns = document.getElementById('outcomeButtons');
         btns.innerHTML = '';
-        outcomes.forEach((o, i) => {
+        for (let i = 0; i < outcomes.length; i++) {
+          const o = outcomes[i];
+          let prob = '';
+          try {
+            const odds = await oddsContract.getInitialOdds(marketId, o);
+            const pct = (Number(odds) / 1e4).toFixed(1);
+            prob = ` (${pct}%)`;
+          } catch(e) {}
           const btn = document.createElement('button');
           btn.className = 'outcome-btn' + (i === 0 ? ' active' : '');
-          btn.textContent = o;
+          btn.textContent = o + prob;
           btn.onclick = function() { selectOutcome(o, this); };
           btns.appendChild(btn);
-        });
+        }
         if (outcomes.length > 0) selectedOutcome = outcomes[0];
       } catch(e) {
         console.error('Outcomes load error:', e);
