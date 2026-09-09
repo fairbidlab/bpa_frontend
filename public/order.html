@@ -60,7 +60,7 @@
   <div class="card">
     <h2>📊 Market</h2>
     <label>Select Market</label>
-    <select id="marketId" onchange="loadMarketOutcomes()" style="width:100%;padding:8px;background:#0f1117;border:1px solid #2e3347;color:#e2e8f0;border-radius:4px;font-size:0.9rem;">
+    <select id="marketId" onchange="loadMarketOutcomes()" onclick="refreshMarkets()" style="width:100%;padding:8px;background:#0f1117;border:1px solid #2e3347;color:#e2e8f0;border-radius:4px;font-size:0.9rem;">
       <option value="">Loading markets...</option>
     </select>
 
@@ -416,7 +416,7 @@
     setInterval(loadStats, 10000);
     
     // Load markets on startup
-    refreshMarkets();
+    window.addEventListener("load", refreshMarkets);
 
     async function refreshMarkets() {
       try {
