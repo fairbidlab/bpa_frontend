@@ -410,6 +410,51 @@
 
     loadStats();
     setInterval(loadStats, 10000);
+
+    // ─── CLAIM ───────────────────────────────────────────────────────────
+    async function claimBalance() {
+      if (!signer) { alert('Connect wallet first'); return; }
+      try {
+        const CLAIM_ABI = [
+          "function claimBalance() external",
+          "function claimableBalance(address) external view returns (uint256)"
+        ];
+        const contract = new ethers.Contract(BPA_MARKET, CLAIM_ABI, signer);
+        const addr = await signer.getAddress();
+        
+        // Check claimable balance
+        const balance = await contract.claimableBalance(addr);
+        const balanceEth = parseFloat(ethers.formatEther(balance));
+        
+        if (balanceEth === 0) {
+          log('Nothing to claim for your address.', '#8892a4');
+          return;
+        }
+        
+        log(`Claiming ${balanceEth.toFixed(6)} ETH...`);
+        const tx = await contract.claimBalance();
+        await tx.wait();
+        log(`✅ Claimed ${balanceEth.toFixed(6)} ETH successfully!`, '#22c55e');
+        loadStats();
+      } catch(e) {
+        if (!e.message?.includes('rejected')) log('Claim error: ' + e.message, '#ef4444');
+        else log('Cancelled', '#8892a4');
+      }
+    }
   </script>
+
+  <!-- CLAIM SECTION -->
+  <div style="background:#1a1d2e;border:1px solid #2e3347;border-radius:10px;padding:16px;margin-top:16px;max-width:480px;margin-left:auto;margin-right:auto;">
+    <h3 style="color:#c9a84c;margin-bottom:8px;font-size:0.95rem;">💰 Claim Winnings / Refund</h3>
+    <p style="color:#8892a4;font-size:0.82rem;margin-bottom:12px;">
+      Claim your winnings (if you guessed correctly), refund (if your order was rejected), 
+      or market creator deposit + premium.
+    </p>
+    <button onclick="claimBalance()" style="background:#22c55e;color:#000;border:none;padding:10px 24px;border-radius:6px;font-weight:700;cursor:pointer;font-size:0.9rem;">
+      💰 Claim
+    </button>
+    <div id="claimLog" style="margin-top:8px;font-size:0.8rem;color:#8892a4;"></div>
+  </div>
+
 </body>
 </html>
