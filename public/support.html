@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA — Support</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; background: #0f1117; color: #e2e8f0; padding: 0; }
+    .nav-bar { background: #1a1d2e; border-bottom: 1px solid #2e3347; padding: 8px 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-bar a { color: #8892a4; text-decoration: none; font-size: 0.85rem; padding: 4px 12px; border: 1px solid #2e3347; border-radius: 4px; }
+    .nav-bar a:hover, .nav-bar a.active { color: #5b8dee; border-color: #5b8dee; background: rgba(91,141,238,0.1); }
+    .container { max-width: 700px; margin: 0 auto; padding: 40px 24px; }
+    h1 { color: #5b8dee; margin-bottom: 8px; }
+    .subtitle { color: #8892a4; font-size: 0.9rem; margin-bottom: 32px; }
+    .card { background: #1a1d2e; border: 1px solid #2e3347; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    .card h2 { color: #c9a84c; margin-bottom: 12px; font-size: 1rem; }
+    label { color: #8892a4; font-size: 0.85rem; display: block; margin-bottom: 4px; margin-top: 12px; }
+    input, textarea, select { width: 100%; padding: 8px; background: #0f1117; border: 1px solid #2e3347; color: #e2e8f0; border-radius: 4px; font-size: 0.9rem; }
+    textarea { resize: vertical; min-height: 120px; }
+    .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; margin-top: 12px; font-weight: 600; }
+    .btn-connect { background: #5b8dee; color: white; }
+    .btn-submit { background: #c9a84c; color: #000; }
+    .fee-box { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); border-radius: 6px; padding: 10px 14px; margin-top: 12px; font-size: 0.82rem; color: #c9a84c; }
+    .log { background: #0f1117; border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 0.8rem; color: #8892a4; max-height: 150px; overflow-y: auto; }
+    .answer-box { background: #0f1117; border: 1px solid #2e3347; border-radius: 6px; padding: 14px; margin-top: 12px; font-size: 0.85rem; color: #e2e8f0; display: none; }
+    .green { color: #22c55e; }
+    .red { color: #ef4444; }
+  </style>
+</head>
+<body>
+  <div class="nav-bar">
+    <a href="help.html">📖 Guide</a>
+    <a href="order.html">📋 Orders</a>
+    <a href="results.html">🏆 Results</a>
+    <a href="calendar.html">📅 Calendar</a>
+    <a href="community.html">💬 Community</a>
+    <a href="support.html" class="active">🆘 Support</a>
+  </div>
+
+  <div class="container">
+    <h1>🆘 Support</h1>
+    <p class="subtitle">Ask a question and get an answer from our AI agent. Fee: $0.10 per question.</p>
+
+    <div class="card">
+      <h2>Connect Wallet</h2>
+      <button class="btn btn-connect" onclick="connect()">🔗 Connect MetaMask</button>
+      <p style="margin-top:8px;font-size:0.82rem;color:#8892a4;">Connected: <span id="walletAddr">—</span></p>
+    </div>
+
+    <div class="card">
+      <h2>Ask a Question</h2>
+      <label>Category</label>
+      <select id="category">
+        <option value="general">General Question</option>
+        <option value="order">Order / Bet</option>
+        <option value="clearing">Clearing / Results</option>
+        <option value="technical">Technical Issue</option>
+        <option value="dispute">Dispute</option>
+      </select>
+      <label>Your Question (English only)</label>
+      <textarea id="question" placeholder="Describe your question in detail..."></textarea>
+      <div class="fee-box">💰 Fee: 0.0001 ETH (~$0.10) will be charged from your wallet to Treasury.</div>
+      <button class="btn btn-submit" onclick="submitQuestion()">📤 Submit Question ($0.10)</button>
+      <div class="log" id="log"></div>
+      <div class="answer-box" id="answerBox">
+        <strong style="color:#c9a84c;">AI Answer:</strong>
+        <p id="answerText" style="margin-top:8px;"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TREASURY = '0x04262f22F4B9341B332735a2F3212614f64d5233';
+    const QUESTION_FEE = ethers.parseEther('0.0001');
+    const CHAIN_ID = 11155111;
+    let provider, signer;
+
+    function log(msg, color='#8892a4') {
+      const el = document.getElementById('log');
+      el.innerHTML += `<div style="color:${color}">${new Date().toLocaleTimeString()} — ${msg}</div>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function connect() {
+      try {
+        if (!window.ethereum) { alert('Install MetaMask!'); return; }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send('eth_requestAccounts', []);
+        signer = await provider.getSigner();
+        const addr = await signer.getAddress();
+        document.getElementById('walletAddr').textContent = addr.slice(0,6) + '...' + addr.slice(-4);
+        log('Wallet connected!', '#22c55e');
+      } catch(e) {
+        log('Connection error: ' + e.message, '#ef4444');
+      }
+    }
+
+    async function submitQuestion() {
+      if (!signer) { alert('Connect wallet first!'); return; }
+      const question = document.getElementById('question').value.trim();
+      if (!question) { alert('Please enter your question!'); return; }
+      if (question.length < 10) { alert('Question too short!'); return; }
+
+      const confirmed = confirm(
+        'Submit question?\n\n' +
+        'Fee: 0.0001 ETH (~$0.10)\n' +
+        'Question: ' + question.slice(0, 100) + '...'
+      );
+      if (!confirmed) return;
+
+      try {
+        log('Sending fee to Treasury...');
+        const tx = await signer.sendTransaction({
+          to: TREASURY,
+          value: QUESTION_FEE
+        });
+        await tx.wait();
+        log('Fee paid! Waiting for AI answer...', '#22c55e');
+
+        // Call AI agent
+        const response = await fetch('http://localhost:5002/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: question,
+            category: document.getElementById('category').value,
+            wallet: await signer.getAddress(),
+            tx_hash: tx.hash
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('answerBox').style.display = 'block';
+          document.getElementById('answerText').textContent = data.answer;
+          log('Answer received!', '#22c55e');
+        } else {
+          log('AI agent not available. Your question was recorded on GitHub Discussions.', '#c9a84c');
+        }
+      } catch(e) {
+        if (!e.message?.includes('rejected')) log('Error: ' + e.message, '#ef4444');
+        else log('Cancelled', '#8892a4');
+      }
+    }
+  </script>
+</body>
+</html>
