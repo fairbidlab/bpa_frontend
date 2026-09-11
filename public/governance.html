@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BPA — Governance</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Inter, sans-serif; background: #0f1117; color: #e2e8f0; padding: 0; }
+    .nav-bar { background: #1a1d2e; border-bottom: 1px solid #2e3347; padding: 8px 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .nav-bar a { color: #8892a4; text-decoration: none; font-size: 0.85rem; padding: 4px 12px; border: 1px solid #2e3347; border-radius: 4px; }
+    .nav-bar a:hover, .nav-bar a.active { color: #5b8dee; border-color: #5b8dee; background: rgba(91,141,238,0.1); }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+    h1 { color: #5b8dee; margin-bottom: 8px; }
+    .subtitle { color: #8892a4; font-size: 0.9rem; margin-bottom: 32px; }
+    .card { background: #1a1d2e; border: 1px solid #2e3347; border-radius: 10px; padding: 24px; margin-bottom: 20px; }
+    .card h2 { color: #c9a84c; margin-bottom: 12px; font-size: 1rem; }
+    label { color: #8892a4; font-size: 0.85rem; display: block; margin-bottom: 4px; margin-top: 12px; }
+    input, textarea, select { width: 100%; padding: 8px; background: #0f1117; border: 1px solid #2e3347; color: #e2e8f0; border-radius: 4px; font-size: 0.9rem; }
+    textarea { resize: vertical; min-height: 100px; }
+    .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem; margin-right: 8px; margin-top: 8px; font-weight: 600; }
+    .btn-connect { background: #5b8dee; color: white; }
+    .btn-propose { background: #c9a84c; color: #000; }
+    .btn-for { background: #22c55e; color: #000; }
+    .btn-against { background: #ef4444; color: white; }
+    .btn-execute { background: #8b5cf6; color: white; }
+    .btn-gray { background: #374151; color: #e2e8f0; }
+    .log { background: #0f1117; border-radius: 4px; padding: 8px; margin-top: 8px; font-size: 0.8rem; color: #8892a4; max-height: 120px; overflow-y: auto; }
+    .proposal { background: #0f1117; border: 1px solid #2e3347; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+    .proposal h3 { color: #e2e8f0; font-size: 0.95rem; margin-bottom: 6px; }
+    .proposal .meta { color: #8892a4; font-size: 0.78rem; margin-bottom: 8px; }
+    .progress-bar { background: #2e3347; border-radius: 4px; height: 8px; margin: 8px 0; }
+    .progress-fill { background: #22c55e; border-radius: 4px; height: 8px; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; margin-left: 6px; }
+    .tag-active { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .tag-executed { background: rgba(91,141,238,0.15); color: #5b8dee; border: 1px solid rgba(91,141,238,0.3); }
+    .tag-failed { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .info-box { background: rgba(91,141,238,0.08); border: 1px solid rgba(91,141,238,0.2); border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.82rem; color: #8892a4; }
+  </style>
+</head>
+<body>
+  <div class="nav-bar">
+    <a href="help.html">📖 Guide</a>
+    <a href="order.html">📋 Orders</a>
+    <a href="results.html">🏆 Results</a>
+    <a href="calendar.html">📅 Calendar</a>
+    <a href="community.html">💬 Community</a>
+    <a href="support.html">🆘 Support</a>
+    <a href="governance.html" class="active">🏛️ Governance</a>
+  </div>
+
+  <div class="container">
+    <h1>🏛️ Governance</h1>
+    <p class="subtitle">Top-50 PoC holders vote on contract upgrades. 80% supermajority required. 7-day voting period.</p>
+
+    <div class="info-box">
+      <strong>GovernanceDAO:</strong> 0x49a2A6d24e1e2350313fFDd8ca969F9806b8cbC1 &nbsp;|&nbsp;
+      <strong>Required:</strong> 80% approval &nbsp;|&nbsp;
+      <strong>Period:</strong> 7 days
+    </div>
+
+    <div class="card">
+      <h2>Connect Wallet</h2>
+      <button class="btn btn-connect" onclick="connect()">🔗 Connect MetaMask</button>
+      <p style="margin-top:8px;font-size:0.82rem;color:#8892a4;">Connected: <span id="walletAddr">—</span></p>
+    </div>
+
+    <div class="card">
+      <h2>📋 Active Proposals</h2>
+      <button class="btn btn-gray" onclick="loadProposals()">🔄 Refresh</button>
+      <div id="proposalsList" style="margin-top:12px;">
+        <p style="color:#8892a4;font-size:0.85rem;">Click Refresh to load proposals.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>➕ New Proposal</h2>
+      <p style="color:#8892a4;font-size:0.82rem;margin-bottom:12px;">Only top-50 PoC holders can propose contract upgrades.</p>
+      <label>Contract Name</label>
+      <select id="contractName">
+        <option value="BPAMarket">BPAMarket</option>
+        <option value="PoiNFT">PoiNFT</option>
+        <option value="NodeConsensus">NodeConsensus</option>
+        <option value="DisputeOracle">DisputeOracle</option>
+        <option value="EventCalendar">EventCalendar</option>
+      </select>
+      <label>New Contract Address</label>
+      <input type="text" id="newAddress" placeholder="0x..." />
+      <label>Description</label>
+      <textarea id="description" placeholder="Describe what this upgrade does and why it is needed..."></textarea>
+      <button class="btn btn-propose" onclick="submitProposal()">📤 Submit Proposal</button>
+      <div class="log" id="proposeLog"></div>
+    </div>
+  </div>
+
+  <script>
+    const DAO_ADDRESS = "0x49a2A6d24e1e2350313fFDd8ca969F9806b8cbC1";
+    const RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/dGJhIAT-IAiPWg8s23bd1";
+    const DAO_ABI = [
+      "function propose(string memory description, string memory contractName, address newAddress) external returns (uint256)",
+      "function vote(uint256 proposalId, bool support) external",
+      "function execute(uint256 proposalId) external",
+      "function getProposal(uint256 proposalId) external view returns (tuple(uint256 id, address proposer, string description, string contractName, address newAddress, uint256 createdAt, uint256 votingEnds, uint256 votesFor, uint256 votesAgainst, bool executed, bool cancelled))",
+      "function proposalCount() external view returns (uint256)",
+      "function getApprovalPct(uint256 proposalId) external view returns (uint256)"
+    ];
+    let provider, signer;
+
+    function log(msg, color="#8892a4") {
+      const el = document.getElementById("proposeLog");
+      el.innerHTML += `<div style="color:${color}">${new Date().toLocaleTimeString()} — ${msg}</div>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    async function connect() {
+      try {
+        if (!window.ethereum) { alert("Install MetaMask!"); return; }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        signer = await provider.getSigner();
+        const addr = await signer.getAddress();
+        document.getElementById("walletAddr").textContent = addr.slice(0,6) + "..." + addr.slice(-4);
+      } catch(e) {
+        alert("Connection error: " + e.message);
+      }
+    }
+
+    async function loadProposals() {
+      try {
+        const readProvider = new ethers.JsonRpcProvider(RPC_URL);
+        const dao = new ethers.Contract(DAO_ADDRESS, DAO_ABI, readProvider);
+        const count = await dao.proposalCount();
+        const list = document.getElementById("proposalsList");
+        if (Number(count) === 0) {
+          list.innerHTML = "<p style='color:#8892a4;font-size:0.85rem;'>No proposals yet.</p>";
+          return;
+        }
+        let html = "";
+        const now = Math.floor(Date.now() / 1000);
+        for (let i = Number(count); i >= 1; i--) {
+          const p = await dao.getProposal(i);
+          const pct = await dao.getApprovalPct(i);
+          const active = !p.executed && !p.cancelled && Number(p.votingEnds) > now;
+          const status = p.executed ? "executed" : (active ? "active" : "failed");
+          const timeLeft = Number(p.votingEnds) - now;
+          const daysLeft = Math.max(0, Math.floor(timeLeft / 86400));
+          html += `<div class="proposal">
+            <h3>${p.contractName}: ${p.newAddress.slice(0,10)}... <span class="tag tag-${status}">${status}</span></h3>
+            <div class="meta">${p.description.slice(0,100)}... | Votes: ${p.votesFor} For / ${p.votesAgainst} Against | ${daysLeft}d left</div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${Math.min(Number(pct),100)}%"></div></div>
+            <div style="font-size:0.78rem;color:#8892a4;margin-bottom:8px;">${pct}% approval (need 80%)</div>
+            ${active ? `<button class="btn btn-for" onclick="castVote(${i}, true)">✅ Vote For</button>
+            <button class="btn btn-against" onclick="castVote(${i}, false)">❌ Vote Against</button>` : ""}
+            ${!p.executed && !active && Number(pct) >= 80 ? `<button class="btn btn-execute" onclick="executeProposal(${i})">⚡ Execute</button>` : ""}
+          </div>`;
+        }
+        list.innerHTML = html;
+      } catch(e) {
+        document.getElementById("proposalsList").innerHTML = "<p style='color:#ef4444;font-size:0.85rem;'>Error loading proposals: " + e.message + "</p>";
+      }
+    }
+
+    async function submitProposal() {
+      if (!signer) { alert("Connect wallet first!"); return; }
+      const contractName = document.getElementById("contractName").value;
+      const newAddress = document.getElementById("newAddress").value.trim();
+      const description = document.getElementById("description").value.trim();
+      if (!newAddress || !description) { alert("Fill all fields!"); return; }
+      try {
+        const dao = new ethers.Contract(DAO_ADDRESS, DAO_ABI, signer);
+        log("Submitting proposal...");
+        const tx = await dao.propose(description, contractName, newAddress);
+        await tx.wait();
+        log("Proposal submitted!", "#22c55e");
+        loadProposals();
+      } catch(e) {
+        if (!e.message?.includes("rejected")) log("Error: " + e.message, "#ef4444");
+        else log("Cancelled", "#8892a4");
+      }
+    }
+
+    async function castVote(proposalId, support) {
+      if (!signer) { alert("Connect wallet first!"); return; }
+      try {
+        const dao = new ethers.Contract(DAO_ADDRESS, DAO_ABI, signer);
+        log("Casting vote...");
+        const tx = await dao.vote(proposalId, support);
+        await tx.wait();
+        log("Vote cast!", "#22c55e");
+        loadProposals();
+      } catch(e) {
+        if (!e.message?.includes("rejected")) log("Error: " + e.message, "#ef4444");
+        else log("Cancelled", "#8892a4");
+      }
+    }
+
+    async function executeProposal(proposalId) {
+      if (!signer) { alert("Connect wallet first!"); return; }
+      try {
+        const dao = new ethers.Contract(DAO_ADDRESS, DAO_ABI, signer);
+        log("Executing proposal...");
+        const tx = await dao.execute(proposalId);
+        await tx.wait();
+        log("Proposal executed!", "#22c55e");
+        loadProposals();
+      } catch(e) {
+        if (!e.message?.includes("rejected")) log("Error: " + e.message, "#ef4444");
+        else log("Cancelled", "#8892a4");
+      }
+    }
+  </script>
+</body>
+</html>
