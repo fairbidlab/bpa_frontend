@@ -74,13 +74,13 @@
   <span style="color:var(--muted);font-size:0.8rem;">🌐</span>
   <a href="help.html" style="color:var(--accent);font-size:0.8rem;font-weight:700;text-decoration:none;padding:2px 6px;border:1px solid var(--accent);border-radius:4px;">EN</a>
   <a href="help_ru.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">RU</a>
-  <a href="help_de.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">DE</a>
-  <a href="help_fr.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">FR</a>
-  <a href="help_it.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">IT</a>
-  <a href="help_es.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">ES</a>
-  <a href="help_ja.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">JA</a>
-  <a href="help_zh.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">ZH</a>
-  <a href="help_ar.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">AR</a>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">DE</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">FR</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">IT</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">ES</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">JA</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">ZH</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">AR</span>
 </div>
 <div class="hero">
   <div class="hero-badge">Reference Guide · Web4</div>
@@ -251,7 +251,7 @@
       <li><span><strong>Connect your Web3 wallet</strong> (MetaMask, Rabby, Coinbase Wallet or any other)</span></li>
       <li><span><strong>Register</strong> — mint PoI NFT ($2, includes first 1000 predictions)</span></li>
       <li><span><strong>Select market</strong> and outcome</span></li>
-      <li><span><strong>Specify number of contracts</strong> (минимум 1) и лимитную цену (от 0 до 1)</span></li>
+      <li><span><strong>Specify number of contracts</strong> (minimum 1) and limit price (from 0 to 1)</span></li>
       <li><span><strong>Confirm in wallet</strong> — MetaMask will open automatically</span></li>
       <li><span><strong>Wait for clearing</strong> — happens automatically on schedule</span></li>
       <li><span><strong>Click Claim</strong> — after the event to collect winnings or deposit refund</span></li>
@@ -415,6 +415,17 @@
 
   <div class="section" id="security">
     <div class="section-header"><div class="section-icon">🔒</div><h2>Security and Protection</h2></div>
+    <div class="card" style="margin-bottom:16px;">
+      <h3>💰 Where are funds stored?</h3>
+      <p>Funds are <strong style="color:var(--text)">never stored by a company</strong>. Here is the full flow:</p>
+      <ol class="steps" style="margin-top:10px;">
+        <li><span>Participant places an order → ETH is sent to the <strong>TSS address</strong></span></li>
+        <li><span>TSS address holds funds until the final event resolution</span></li>
+        <li><span>After event → top-5 PoC nodes sign the payout together → ETH goes to winners</span></li>
+        <li><span>Rejected orders → participant clicks Claim → ETH returns to their wallet</span></li>
+      </ol>
+      <p style="margin-top:10px;">The TSS address is not a company or server — it is a mathematically protected address whose key is split among the top-5 PoC nodes. <strong style="color:var(--text)">No single person controls these funds.</strong></p>
+    </div>
     <ul class="adv-list">
       <li><span class="icon">🔍</span><div><strong>Open source.</strong> Anyone can read every line. No hidden functions — like Bitcoin.</div></li>
       <li><span class="icon">🔑</span><div><strong>TSS (Threshold Signature Scheme).</strong> Participant funds are stored at the TSS address — the key is split among the top-5 PoC nodes. Signatures from all online nodes are required for payout. Even if one node is compromised — stealing funds is impossible without the rest.</div></li>

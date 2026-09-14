@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BPA Market — Place Order</title>
+  <title>PoI Market — Place Order</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -46,8 +46,14 @@
 
   <a href="help.html" style="color:#8892a4;text-decoration:none;font-size:0.85rem;padding:4px 12px;border:1px solid #2e3347;border-radius:4px;">📖 Guide</a>
 </div>
-  <h1>📝 BPA Market — Place Order</h1>
+  <h1>📝 PoI Market — Place Order</h1>
   <div class="subtitle">✍️ Orders signed with EIP-712 (deposit + signature in one step)</div>
+  <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+    <span style="color:#8892a4;font-size:0.85rem;">New here?</span>
+    <a href="help.html" style="color:#5b8dee;font-size:0.85rem;text-decoration:none;padding:4px 12px;border:1px solid #5b8dee;border-radius:4px;">📖 Read the Guide first</a>
+    <button id="nftBtn" onclick="mintNFT()" style="display:none;background:#c9a84c;color:#000;border:none;padding:4px 12px;border-radius:4px;font-size:0.85rem;cursor:pointer;">🎫 Register — Get PoI NFT ($2)</button>
+    <button id="predictionsBtn" onclick="buyPredictions()" style="display:none;background:#22c55e;color:#000;border:none;padding:4px 12px;border-radius:4px;font-size:0.85rem;cursor:pointer;">➕ Buy 1000 more predictions ($1)</button>
+  </div>
 
   <div class="card">
     <h2>👤 Wallet</h2>
@@ -229,7 +235,38 @@
         const bal = await provider.getBalance(userAddress);
         document.getElementById('ethBal').textContent = parseFloat(ethers.formatEther(bal)).toFixed(4);
         log('Connected: ' + userAddress.slice(0,10) + '...', '#22c55e');
+        await checkNFT(userAddress);
       } catch(e) { log('Error: ' + e.message, '#ef4444'); }
+    }
+
+    async function checkNFT(address) {
+      try {
+        const poiNFT = new ethers.Contract(
+          '0x919Bf8ef23080Af85a1f28ac78C02A6b5b292B18',
+          ['function hasNFT(address) view returns (bool)', 'function getCountTotal(address) view returns (uint256)'],
+          provider
+        );
+        const hasNFT = await poiNFT.hasNFT(address);
+        if (!hasNFT) {
+          document.getElementById('nftBtn').style.display = 'inline-block';
+        } else {
+          document.getElementById('nftBtn').style.display = 'none';
+          try {
+            const count = await poiNFT.getCountTotal(address);
+            if (Number(count) >= 1000) {
+              document.getElementById('predictionsBtn').style.display = 'inline-block';
+            }
+          } catch(e) {}
+        }
+      } catch(e) { console.log('NFT check error:', e); }
+    }
+
+    async function mintNFT() {
+      alert('NFT minting coming soon! Cost: $2');
+    }
+
+    async function buyPredictions() {
+      alert('Buy 1000 more predictions coming soon! Cost: $1');
     }
 
     async function depositAndSign(marketId, outcome, quantity, limitPrice, ethAmount) {

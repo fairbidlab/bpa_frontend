@@ -70,6 +70,18 @@
     <a href="support.html">🆘 Support</a>
     <a href="governance.html">🏛️ Governance</a>
 </div>
+<div style="background:var(--surface);border-bottom:1px solid var(--border);padding:4px 20px;display:flex;gap:8px;align-items:center;">
+  <span style="color:var(--muted);font-size:0.8rem;">🌐</span>
+  <a href="help.html" style="color:var(--muted);font-size:0.8rem;text-decoration:none;padding:2px 6px;border:1px solid var(--border);border-radius:4px;">EN</a>
+  <a href="help_ru.html" style="color:var(--accent);font-size:0.8rem;font-weight:700;text-decoration:none;padding:2px 6px;border:1px solid var(--accent);border-radius:4px;">RU</a>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">DE</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">FR</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">IT</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">ES</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">JA</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">ZH</span>
+  <span style="color:#3a3f52;font-size:0.8rem;padding:2px 6px;border:1px solid #2a2f42;border-radius:4px;cursor:not-allowed;">AR</span>
+</div>
 
 <div class="hero">
   <div class="hero-badge">Справочное руководство · Web4</div>
@@ -404,6 +416,17 @@
 
   <div class="section" id="security">
     <div class="section-header"><div class="section-icon">🔒</div><h2>Безопасность и защита</h2></div>
+    <div class="card" style="margin-bottom:16px;">
+      <h3>💰 Где хранятся деньги?</h3>
+      <p>Деньги <strong style="color:var(--text)">никогда не хранятся в компании</strong>. Вот полная схема:</p>
+      <ol class="steps" style="margin-top:10px;">
+        <li><span>Участник ставит ордер → ETH уходит на <strong>TSS адрес</strong></span></li>
+        <li><span>TSS адрес хранит деньги до финального резолва event</span></li>
+        <li><span>После event → топ-5 PoC nodes вместе подписывают выплату → ETH уходит победителям</span></li>
+        <li><span>Отклонённые ордера → участник нажимает Claim → ETH возвращается на его кошелёк</span></li>
+      </ol>
+      <p style="margin-top:10px;">TSS адрес — это не компания и не сервер. Это математически защищённый адрес, ключ которого разделён между топ-5 PoC nodes. <strong style="color:var(--text)">Никто единолично не контролирует эти деньги.</strong></p>
+    </div>
     <ul class="adv-list">
       <li><span class="icon">🔍</span><div><strong>Открытый код.</strong> Любой читает каждую строку. Нет скрытых функций — как в Bitcoin.</div></li>
       <li><span class="icon">🔑</span><div><strong>TSS (Threshold Signature Scheme).</strong> Деньги участников хранятся на TSS адресе — ключ разделён между топ-5 PoC nodes. Для выплаты нужны подписи всех онлайн nodes. Даже если один node взломан — украсть деньги невозможно без остальных.</div></li>
