@@ -208,8 +208,16 @@
       <li><span><strong>Верифицированное резюме</strong> — PoI NFT это доказательство аналитических способностей в блокчейне навсегда. Нельзя купить или подделать.</span></li>
     </ol>
     <div class="alert"><strong>Важно:</strong> PoI не начисляется Liquidity Provider — LP ставит на все исходы и не делает прогнозов.</div>
-    <p style="margin-top:12px;"><strong style="color:var(--gold)">Раз в год</strong> — если в Treasury остаются средства после всех расходов, ВСЕ участники с PoC > 0 получают 70% остатка пропорционально их PoC. 30% переходит на следующий год.
-    <div class="formula">доля = (ваш PoC / сумма всех PoC участников) × 70% Treasury</div>
+    <p style="margin-top:12px;"><strong style="color:var(--gold)">Раз в год</strong> — если в Treasury остаются средства после всех расходов, ВСЕ участники с PoC > 0 получают 70% остатка пропорционально их эффективному PoC. 30% переходит на следующий год.
+    <div class="formula">доля = (ваш эффективный PoC / сумма всех эффективных PoC) × 70% Treasury</div>
+    <p style="margin-top:8px;">Эффективный PoC включает коэффициент активности — неактивные участники получают меньшую долю:</p>
+    <ul style="list-style:none;padding:0;margin-top:6px;">
+      <li style="padding:3px 0;color:var(--muted);font-size:0.85rem;">✅ Активен в этом году → 100% PoC</li>
+      <li style="padding:3px 0;color:var(--muted);font-size:0.85rem;">⚠️ Не активен 1 год → 50% PoC</li>
+      <li style="padding:3px 0;color:var(--muted);font-size:0.85rem;">⚠️ Не активен 2 года → 25% PoC</li>
+      <li style="padding:3px 0;color:var(--muted);font-size:0.85rem;">❌ Не активен 3+ лет → 12.5% PoC</li>
+    </ul>
+    <p style="margin-top:6px;font-size:0.82rem;color:var(--muted);">Примечание: PoC в блокчейне никогда не меняется — коэффициент применяется только при расчёте бонуса.</p>
     <div class="formula">доля = (ваш PoC / сумма всех PoC участников) × 70% Treasury</div></p>
   </div>
 
