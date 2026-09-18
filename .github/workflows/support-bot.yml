@@ -1,0 +1,55 @@
+name: BPA Support Bot
+
+on:
+  discussion:
+    types: [created]
+
+jobs:
+  answer:
+    runs-on: ubuntu-latest
+    if: contains(github.event.discussion.body, 'TX_HASH:')
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install anthropic requests
+
+      - name: Extract question data
+        id: extract
+        run: |
+          BODY="${{ github.event.discussion.body }}"
+          TX_HASH=$(echo "$BODY" | grep -oP "TX_HASH:\s*\K0x[a-fA-F0-9]+")
+          CATEGORY="${{ github.event.discussion.category.name }}"
+          echo "tx_hash=$TX_HASH" >> $GITHUB_OUTPUT
+          echo "category=$CATEGORY" >> $GITHUB_OUTPUT
+
+      - name: Answer question
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          TREASURY_ADDRESS: "0x04262f22F4B9341B332735a2F3212614f64d5233"
+          QUESTION: ${{ github.event.discussion.body }}
+          CATEGORY: ${{ steps.extract.outputs.category }}
+          TX_HASH: ${{ steps.extract.outputs.tx_hash }}
+          DISCUSSION_NUMBER: ${{ github.event.discussion.number }}
+        run: python .github/scripts/answer_question.py
+
+      - name: Post answer to Discussion
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const answer = fs.readFileSync('answer.txt', 'utf8');
+            await github.rest.discussions.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              discussion_number: ${{ github.event.discussion.number }},
+              body: answer
+            });
