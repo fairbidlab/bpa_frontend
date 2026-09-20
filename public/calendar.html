@@ -79,7 +79,7 @@
     <div id="outcomeTags"></div>
     <div style="color:#8892a4;font-size:0.75rem;margin-top:4px;">Click on an outcome to remove it. Minimum 2 outcomes required.</div>
     <label>Resolution Date & Time</label>
-    <input type="datetime-local" id="eventDate" />
+    <input type="date" id="eventDate" min="2026-09-21" />
     <label>Description (optional)</label>
     <textarea id="eventDesc" placeholder="Additional details about the event..."></textarea>
     <br>
@@ -145,12 +145,12 @@
       if (!title) { alert("Enter event title"); return; }
       if (outcomes.length < 2) { alert("Add at least 2 outcomes"); return; }
       if (!dateVal) { alert("Select resolution date"); return; }
-      const resolutionTime = Math.floor(new Date(dateVal).getTime() / 1000);
+      const resolutionTime = Math.floor(new Date(dateVal + "T23:59:59").getTime() / 1000);
       if (resolutionTime <= Math.floor(Date.now()/1000)) { alert("Resolution date must be in the future"); return; }
       try {
         log("Proposing: " + title + "...");
         const contract = new ethers.Contract(CALENDAR_ADDRESS, CALENDAR_ABI, signer);
-        const tx = await contract.proposeEvent(title, category, outcomes, resolutionTime, desc);
+        const tx = await contract.proposeEvent(title, outcomes, resolutionTime, "", {value: ethers.parseEther("0.0003")});
         log("Tx sent: " + tx.hash, "#c9a84c");
         await tx.wait();
         log("Event proposed! AI agent will review it.", "#22c55e");
