@@ -91,11 +91,12 @@
     <div id="eventsList"><div style="color:#8892a4;font-size:0.85rem;">Click Refresh to load events.</div></div>
   </div>
   <script>
-    const CALENDAR_ADDRESS = "0x57a4bC32fee7403307eBB4c7F3B9c049699Af1f8";
-    const CALENDAR_ABI = [
-      "function proposeEvent(string memory name, string[] memory outcomes, uint256 eventDate, string memory ipfsCID) external payable returns (uint256)",
-      "function events(uint256) external view returns (uint256 id, string name, uint256 eventDate, uint256 proposedAt, address proposer, uint8 status)",
-      "function eventCount() external view returns (uint256)"
+    const BPA_MARKET = "0x5982ff32a7466469aABB86D343530Bc210549A0e";
+    const BPA_MARKET_ABI = [
+      {"inputs":[{"name":"name","type":"string"},{"name":"outcomes","type":"string[]"},{"name":"endTime","type":"uint256"}],"name":"createMarket","outputs":[{"name":"","type":"uint256"}],"stateMutability":"payable","type":"function"},
+      {"inputs":[],"name":"marketCount","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[],"name":"seedAmount","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"},
+      {"inputs":[{"name":"","type":"uint256"}],"name":"markets","outputs":[{"name":"id","type":"uint256"},{"name":"name","type":"string"},{"name":"status","type":"uint8"},{"name":"endTime","type":"uint256"},{"name":"winningOutcome","type":"string"},{"name":"creator","type":"address"},{"name":"seedAmount","type":"uint256"},{"name":"succeeded","type":"bool"}],"stateMutability":"view","type":"function"}
     ];
     const RPC_URL = "https://eth-sepolia.g.alchemy.com/v2/dGJhIAT-IAiPWg8s23bd1";
     let provider, signer;
@@ -148,8 +149,11 @@
       if (resolutionTime <= Math.floor(Date.now()/1000)) { alert("Resolution date must be in the future"); return; }
       try {
         log("Proposing: " + title + "...");
-        const contract = new ethers.Contract(CALENDAR_ADDRESS, CALENDAR_ABI, signer);
-        const tx = await contract.proposeEvent(title, outcomes, resolutionTime, "", {value: ethers.parseEther("0.0003")});
+        const contract = new ethers.Contract(BPA_MARKET, BPA_MARKET_ABI, signer);
+        const seedContract = new ethers.Contract(BPA_MARKET, BPA_MARKET_ABI, provider);
+        const seedAmt = await seedContract.seedAmount();
+        const totalSeed = seedAmt * BigInt(outcomes.length);
+        const tx = await contract.createMarket(title, outcomes, resolutionTime, {value: totalSeed});
         log("Tx sent: " + tx.hash, "#c9a84c");
         await tx.wait();
         log("Event proposed! AI agent will review it.", "#22c55e");
@@ -163,8 +167,8 @@
     async function loadEvents() {
       try {
         const prov = provider || new ethers.JsonRpcProvider(RPC_URL);
-        const contract = new ethers.Contract(CALENDAR_ADDRESS, CALENDAR_ABI, prov);
-        const count = await contract.eventCount();
+        const contract = new ethers.Contract(BPA_MARKET, BPA_MARKET_ABI, prov);
+        const count = await contract.marketCount();
         const container = document.getElementById("eventsList");
         if (count == 0) { container.innerHTML = "<div style=\"color:#8892a4\">No events yet. Be the first!</div>"; return; }
         const statusMap = {0:["Proposed","badge-pending"],1:["Approved","badge-approved"],2:["Rejected","badge-rejected"],3:["Expired","badge-rejected"]};
@@ -172,10 +176,10 @@
         const start = Math.max(1, Number(count)-20);
         for (let i=Number(count); i>=start; i--) {
           try {
-            const ev = await contract.events(i);
-            const [st, sc] = statusMap[Number(ev[5])]||["Status:"+ev[5],"badge-pending"];
+            const ev = await contract.markets(i);
+            const [st, sc] = statusMap[Number(ev[2])]||["Open","badge-approved"];
             const date = new Date(Number(ev[3])*1000).toLocaleDateString();
-            const addr = ev[4].slice(0,6)+"..."+ev[4].slice(-4);
+            const addr = ev[5].slice(0,6)+"..."+ev[5].slice(-4);
             html += "<div class=\"event-card\"><h3>"+ev[1]+" <span class=\"badge "+sc+"\">"+st+"</span></h3><div class=\"meta\">📅 "+date+" | 👤 "+addr+"</div></div>";
           } catch(e) {}
         }
