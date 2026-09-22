@@ -155,8 +155,18 @@
         const totalSeed = seedAmt * BigInt(outcomes.length);
         const tx = await contract.createMarket(title, outcomes, resolutionTime, {value: totalSeed});
         log("Tx sent: " + tx.hash, "#c9a84c");
-        await tx.wait();
-        log("Event proposed! AI agent will review it.", "#22c55e");
+        const receipt = await tx.wait();
+        log("Market created! Setting initial odds...", "#c9a84c");
+        // Wait for confirmation then set odds
+        const readProv = new ethers.JsonRpcProvider(RPC_URL);
+        const readContract = new ethers.Contract(BPA_MARKET, BPA_MARKET_ABI, readProv);
+        const marketId = await readContract.marketCount();
+        const equalOdds = outcomes.map(() => Math.floor(1000000 / outcomes.length));
+        const setOddsABI = [{"inputs":[{"name":"marketId","type":"uint256"},{"name":"outcomes","type":"string[]"},{"name":"odds","type":"uint256[]"}],"name":"setInitialOdds","outputs":[],"stateMutability":"nonpayable","type":"function"}];
+        const oddsContract = new ethers.Contract(BPA_MARKET, setOddsABI, signer);
+        const oddsTx = await oddsContract.setInitialOdds(marketId, outcomes, equalOdds);
+        await oddsTx.wait();
+        log("Market created with initial odds!", "#22c55e");
         document.getElementById("eventTitle").value = "";
         document.getElementById("eventDesc").value = "";
         document.getElementById("eventDate").value = "";
